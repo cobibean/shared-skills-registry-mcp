@@ -42,11 +42,12 @@ Owner: MCP agent
 
 Owner: UI agent
 
-- [ ] Registry list page.
-- [ ] Skill detail page.
-- [ ] Validation/install status area.
-- [ ] Audit/activity view.
-- [ ] Empty/error states that make sense to new users.
+- [x] Registry list page.
+- [x] Skill detail page.
+- [x] Validation/install status area (bundle checksums, missing-source warnings).
+- [x] Audit/activity view.
+- [x] Empty/error states that make sense to new users.
+- [x] Registry entry editing (add/edit/deprecate/delete, metadata-only).
 
 ## Lane E — Local install adapter
 

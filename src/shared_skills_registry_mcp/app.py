@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import time
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from .audit import AuditLog
 from .config import Settings, load_settings
+from .registry_edit import delete_registry_skill, list_registry_skills, upsert_registry_skill
 from .shared_skills import (
     SharedSkillNotFound,
     SharedSkillsConfigError,
@@ -16,6 +19,8 @@ from .shared_skills import (
     retrieve_shared_skill,
     search_shared_skills,
 )
+
+_UI_INDEX = Path(__file__).resolve().parents[2] / "ui" / "index.html"
 
 
 class SharedSkillListIn(BaseModel):
@@ -44,6 +49,20 @@ class SharedSkillInstallIn(BaseModel):
     overwrite: bool = True
 
 
+class RegistrySkillIn(BaseModel):
+    name: str = Field(min_length=1, max_length=128)
+    title: str = Field(min_length=1, max_length=160)
+    summary: str = Field(min_length=1, max_length=1200)
+    category: str = Field(min_length=1, max_length=64)
+    owner: str = Field(min_length=1, max_length=64)
+    source: str = Field(min_length=1, max_length=160)
+    docs_path: str = Field(min_length=1, max_length=300)
+    applicability: str = Field(min_length=1, max_length=1200)
+    lifecycle_status: str = Field(min_length=1, max_length=64)
+    install_guidance: str = Field(min_length=1, max_length=1200)
+    tags: list[str] = Field(default_factory=list, max_length=20)
+
+
 TOOLS = [
     {"name": "list_shared_skills", "description": "List Shared Skills Registry metadata."},
     {"name": "describe_shared_skill", "description": "Describe one Shared Skills Registry entry."},
@@ -61,9 +80,52 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def _elapsed_ms(started: float) -> int:
         return int((time.monotonic() - started) * 1000)
 
+    @app.get("/", include_in_schema=False)
+    def root() -> RedirectResponse:
+        return RedirectResponse(url="/ui")
+
+    @app.get("/ui", include_in_schema=False)
+    def ui() -> FileResponse:
+        return FileResponse(_UI_INDEX, media_type="text/html")
+
     @app.get("/healthz")
     def healthz() -> dict[str, Any]:
         return {"ok": True, "bind_host": settings.bind_host, "tools": [t["name"] for t in TOOLS]}
+
+    @app.get("/registry/skills")
+    def registry_skills() -> dict[str, Any]:
+        try:
+            return list_registry_skills(settings.shared_skills_path, content_roots=list(settings.shared_skill_content_roots))
+        except SharedSkillsConfigError as exc:
+            raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
+
+    @app.put("/registry/skills/{name}")
+    def registry_upsert(name: str, inp: RegistrySkillIn) -> dict[str, Any]:
+        started = time.monotonic()
+        entry = inp.model_dump()
+        if name.strip().lower() != inp.name.strip().lower():
+            raise HTTPException(status_code=400, detail={"code": "name_mismatch", "message": "path name does not match body name"})
+        try:
+            result = upsert_registry_skill(settings.shared_skills_path, entry)
+            audit.record_event(event_type="registry_edit", tool_name="upsert_registry_skill", arguments={"name": inp.name}, result_summary={"created": result["created"]}, status="ok", latency_ms=_elapsed_ms(started))
+            return result
+        except SharedSkillsConfigError as exc:
+            audit.record_event(event_type="registry_edit", tool_name="upsert_registry_skill", arguments={"name": inp.name}, status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
+            raise HTTPException(status_code=422, detail={"code": "invalid_skill_entry", "message": str(exc)}) from exc
+
+    @app.delete("/registry/skills/{name}")
+    def registry_delete(name: str) -> dict[str, Any]:
+        started = time.monotonic()
+        try:
+            result = delete_registry_skill(settings.shared_skills_path, name)
+            audit.record_event(event_type="registry_edit", tool_name="delete_registry_skill", arguments={"name": name}, result_summary={"remaining": result["remaining"]}, status="ok", latency_ms=_elapsed_ms(started))
+            return result
+        except SharedSkillNotFound as exc:
+            audit.record_event(event_type="registry_edit", tool_name="delete_registry_skill", arguments={"name": name}, status="error", error_class="SharedSkillNotFound", latency_ms=_elapsed_ms(started))
+            raise HTTPException(status_code=404, detail={"code": "skill_not_found", "message": "unknown shared skill"}) from exc
+        except SharedSkillsConfigError as exc:
+            audit.record_event(event_type="registry_edit", tool_name="delete_registry_skill", arguments={"name": name}, status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
+            raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     @app.get("/tools")
     def tools() -> dict[str, Any]:

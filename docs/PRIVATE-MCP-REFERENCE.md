@@ -264,12 +264,12 @@ The UI should make these boundaries obvious:
 | Retrieval | Checked bundle with file hashes | Ported: SHA-256 per file, allowed support dirs, size limits | Keep aligned. |
 | Install | Server authorizes, local adapter writes | Split preserved; destination is an explicit configured `skills_root` instead of a private profile home | Preserve split exactly. |
 | Visibility | Broad private ledger | Narrow SSR activity log: JSONL `audit.py`, redacted arguments, `GET /audit/recent` | Keep narrow; summaries only, never bundle content or secrets. |
-| UI | Private operator/admin visibility | Not built yet | Build SSR-specific UI after backend contracts exist. |
+| UI | Private operator/admin visibility | SSR-specific control panel at `/ui`: registry browser, skill detail + bundle view, activity timeline, registry editing | Public-only addition; the private server has no UI. |
 | Excluded layers | Fleet/A2A/corpus/health/tool hub | Not present | Keep excluded in v1. |
 
 ## Implementation order before UI
 
-Steps 1–7 are done in `src/shared_skills_registry_mcp/`; the remaining step is the UI.
+All steps are done; the UI ships as `ui/index.html`, served at `/ui`.
 
 1. ~~Convert `registry.example.yaml` to the private-compatible v1 schema.~~ Done.
 2. ~~Port registry loading/list/search/describe.~~ Done (`shared_skills.py`).
@@ -278,7 +278,7 @@ Steps 1–7 are done in `src/shared_skills_registry_mcp/`; the remaining step is
 5. ~~Add tests for example skill → list/search/describe/retrieve → install into scratch dir.~~ Done.
 6. ~~Add SSR-only MCP server tools.~~ Done.
 7. ~~Add narrow activity/audit events.~~ Done (`audit.py`, `/audit/recent`).
-8. Build UI against those real contracts.
+8. ~~Build UI against those real contracts.~~ Done (`ui/index.html`).
 
 ## Bottom line
 

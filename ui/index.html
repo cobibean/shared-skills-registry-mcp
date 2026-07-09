@@ -1,0 +1,661 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Open SSR — Shared Skills Registry</title>
+<style>
+/* ── Registry-ledger design system ─────────────────────────────────────── */
+:root {
+  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+
+  --bg: #f4f1e9;
+  --bg-raised: #fbf9f3;
+  --bg-inset: #edeade;
+  --ink: #211d17;
+  --ink-dim: #6f675a;
+  --hair: #ddd6c6;
+  --hair-strong: #bdb49c;
+  --accent: #d14b04;
+  --accent-soft: rgba(209, 75, 4, 0.08);
+  --ok: #3a7d44;
+  --ok-soft: rgba(58, 125, 68, 0.10);
+  --err: #b3261e;
+  --err-soft: rgba(179, 38, 30, 0.09);
+  --muted-soft: rgba(111, 103, 90, 0.10);
+  --shadow: 0 18px 50px -18px rgba(33, 29, 23, 0.35);
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141310;
+    --bg-raised: #1c1a16;
+    --bg-inset: #100f0c;
+    --ink: #eae4d6;
+    --ink-dim: #948d7d;
+    --hair: #2b2822;
+    --hair-strong: #454035;
+    --accent: #ff7c24;
+    --accent-soft: rgba(255, 124, 36, 0.10);
+    --ok: #6fbf7a;
+    --ok-soft: rgba(111, 191, 122, 0.12);
+    --err: #ee6a5f;
+    --err-soft: rgba(238, 106, 95, 0.12);
+    --muted-soft: rgba(148, 141, 125, 0.12);
+    --shadow: 0 18px 50px -12px rgba(0, 0, 0, 0.7);
+  }
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+/* paper grain */
+body::before {
+  content: "";
+  position: fixed; inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+#app { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 0 28px 80px; }
+
+/* ── Masthead ──────────────────────────────────────────────────────────── */
+header.masthead {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 30px 0 18px;
+  border-bottom: 2px solid var(--ink);
+}
+.brand .over {
+  font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--ink-dim); margin-bottom: 3px;
+}
+.brand h1 {
+  font-family: var(--serif); font-weight: 600; font-size: 30px;
+  letter-spacing: -0.01em; margin: 0; line-height: 1.05;
+}
+.brand h1 em { font-style: italic; color: var(--accent); }
+.masthead-right { display: flex; align-items: center; gap: 18px; }
+.server-status { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--ink-dim); }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--err); }
+.dot.up { background: var(--ok); box-shadow: 0 0 0 3px var(--ok-soft); animation: pulse 2.4s ease-in-out infinite; }
+@keyframes pulse { 50% { box-shadow: 0 0 0 6px transparent; } }
+
+/* ── Nav ───────────────────────────────────────────────────────────────── */
+nav.tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--hair); }
+nav.tabs a {
+  display: inline-block; padding: 12px 2px 10px;
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+  color: var(--ink-dim); text-decoration: none;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s;
+}
+nav.tabs a:hover { color: var(--ink); }
+nav.tabs a.active { color: var(--ink); border-bottom-color: var(--accent); }
+
+/* ── Buttons / inputs ──────────────────────────────────────────────────── */
+.btn {
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 9px 16px; cursor: pointer;
+  background: var(--ink); color: var(--bg);
+  border: 1px solid var(--ink); border-radius: 2px;
+  transition: transform .12s, opacity .15s;
+}
+.btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn.ghost { background: transparent; color: var(--ink); border-color: var(--hair-strong); }
+.btn.ghost:hover { border-color: var(--ink); opacity: 1; }
+.btn.danger { background: transparent; color: var(--err); border-color: var(--err); }
+.btn.accent { background: var(--accent); border-color: var(--accent); color: #fff; }
+input[type="text"], input[type="search"], select, textarea {
+  font-family: var(--mono); font-size: 13px; color: var(--ink);
+  background: var(--bg-raised); border: 1px solid var(--hair-strong); border-radius: 2px;
+  padding: 9px 12px; outline: none; width: 100%;
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea { resize: vertical; min-height: 64px; line-height: 1.5; }
+label.field { display: block; margin-bottom: 14px; }
+label.field .lab {
+  display: flex; justify-content: space-between;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-dim); margin-bottom: 5px;
+}
+label.field .lab .hint { letter-spacing: 0; text-transform: none; opacity: .8; }
+
+/* ── Toolbar ───────────────────────────────────────────────────────────── */
+.toolbar { display: flex; gap: 12px; align-items: center; margin: 22px 0 6px; }
+.toolbar .search { flex: 1; position: relative; }
+.toolbar select { width: auto; min-width: 150px; }
+.count { font-size: 11px; color: var(--ink-dim); white-space: nowrap; letter-spacing: 0.06em; }
+
+/* ── Ledger rows ───────────────────────────────────────────────────────── */
+.ledger { margin-top: 10px; }
+.row {
+  display: grid;
+  grid-template-columns: 58px 1.35fr 1.8fr auto;
+  gap: 18px; align-items: center;
+  padding: 18px 10px 18px 2px;
+  border-bottom: 1px solid var(--hair);
+  cursor: pointer;
+  animation: rise .45s cubic-bezier(.2,.7,.3,1) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+  transition: background .15s;
+}
+@keyframes rise { from { opacity: 0; transform: translateY(9px); } }
+.row:hover { background: var(--accent-soft); }
+.row .idx {
+  font-family: var(--serif); font-size: 30px; color: var(--ink-dim);
+  opacity: 0.55; font-variant-numeric: tabular-nums; line-height: 1;
+}
+.row:hover .idx { color: var(--accent); opacity: 1; }
+.row .who .name { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+.row .who .meta { font-size: 11px; color: var(--ink-dim); margin-top: 3px; }
+.row .what { font-family: var(--serif); font-size: 14.5px; line-height: 1.45; color: var(--ink); opacity: .92; }
+.row .end { display: flex; align-items: center; gap: 10px; justify-self: end; }
+.row .arrow { color: var(--ink-dim); opacity: 0; transform: translateX(-4px); transition: all .15s; }
+.row:hover .arrow { opacity: 1; transform: none; color: var(--accent); }
+
+/* stamps */
+.stamp {
+  font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase;
+  padding: 3px 8px 2px; border-radius: 2px; border: 1px solid;
+  white-space: nowrap;
+}
+.stamp.active { color: var(--ok); border-color: var(--ok); background: var(--ok-soft); }
+.stamp.deprecated { color: var(--err); border-color: var(--err); background: var(--err-soft); }
+.stamp.other { color: var(--ink-dim); border-color: var(--hair-strong); background: var(--muted-soft); }
+.warn-chip { font-size: 10px; color: var(--err); border: 1px dashed var(--err); padding: 2px 7px; border-radius: 2px; }
+.tag { font-size: 10px; color: var(--ink-dim); background: var(--muted-soft); padding: 2px 7px; border-radius: 2px; }
+
+/* ── Empty state ───────────────────────────────────────────────────────── */
+.empty { text-align: center; padding: 90px 20px; color: var(--ink-dim); }
+.empty .big { font-family: var(--serif); font-size: 22px; color: var(--ink); margin-bottom: 8px; }
+
+/* ── Slide-over detail panel ───────────────────────────────────────────── */
+.scrim {
+  position: fixed; inset: 0; z-index: 40;
+  background: rgba(20, 17, 12, 0.45); backdrop-filter: blur(2px);
+  opacity: 0; pointer-events: none; transition: opacity .2s;
+}
+.scrim.open { opacity: 1; pointer-events: auto; }
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 50;
+  width: min(620px, 94vw);
+  background: var(--bg-raised);
+  border-left: 1px solid var(--hair-strong);
+  box-shadow: var(--shadow);
+  transform: translateX(102%);
+  transition: transform .28s cubic-bezier(.2,.8,.25,1);
+  overflow-y: auto;
+  padding: 30px 34px 60px;
+}
+.panel.open { transform: none; }
+.panel .close {
+  position: absolute; top: 20px; right: 22px;
+  background: none; border: none; color: var(--ink-dim);
+  font-size: 20px; cursor: pointer; font-family: var(--mono);
+}
+.panel .close:hover { color: var(--ink); }
+.panel h2 { font-family: var(--serif); font-size: 26px; margin: 6px 0 2px; letter-spacing: -0.01em; }
+.panel .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 18px; }
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 8px 16px; padding: 16px 0; border-top: 1px solid var(--hair); }
+.kv dt { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-dim); padding-top: 2px; }
+.kv dd { margin: 0; font-size: 12.5px; }
+.kv dd.serif { font-family: var(--serif); font-size: 14px; }
+.section-title {
+  font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-dim);
+  border-top: 2px solid var(--ink); padding-top: 10px; margin-top: 22px;
+  display: flex; justify-content: space-between; align-items: baseline;
+}
+
+/* bundle files */
+.file { border: 1px solid var(--hair); border-radius: 2px; margin-top: 10px; background: var(--bg); }
+.file-head { display: flex; align-items: center; gap: 12px; padding: 10px 14px; cursor: pointer; }
+.file-head .path { font-weight: 700; font-size: 12.5px; flex: 1; }
+.file-head .size { color: var(--ink-dim); font-size: 11px; white-space: nowrap; }
+.sha { display: inline-flex; gap: 4px; cursor: pointer; font-size: 10.5px; align-items: center; }
+.sha .h { padding: 1px 5px; border-radius: 2px; background: var(--muted-soft); color: var(--ink-dim); }
+.sha .h:first-child { background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+.sha:hover .h { color: var(--ink); }
+.file pre {
+  margin: 0; padding: 14px; border-top: 1px solid var(--hair);
+  background: var(--bg-inset); overflow-x: auto;
+  font-size: 11.5px; line-height: 1.6; max-height: 340px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-word;
+}
+.note { font-size: 11.5px; color: var(--ink-dim); padding: 12px 0; }
+
+/* ── Activity timeline ─────────────────────────────────────────────────── */
+.timeline { margin-top: 18px; }
+.event {
+  display: grid; grid-template-columns: 150px 14px 1fr auto; gap: 14px;
+  padding: 13px 4px; border-bottom: 1px solid var(--hair); align-items: baseline;
+  animation: rise .4s ease both; animation-delay: calc(var(--i, 0) * 25ms);
+}
+.event .t { color: var(--ink-dim); font-size: 11px; font-variant-numeric: tabular-nums; }
+.event .st { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+.event .st.ok { background: var(--ok); }
+.event .st.error { background: var(--err); }
+.event .desc .tool { font-weight: 700; }
+.event .desc .args { color: var(--ink-dim); font-size: 11.5px; }
+.event .lat { color: var(--ink-dim); font-size: 11px; white-space: nowrap; }
+.event .err-class { color: var(--err); font-size: 11px; }
+
+/* ── Editor ───────────────────────────────────────────────────────────── */
+.editor { max-width: 720px; margin-top: 26px; }
+.editor .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 18px; }
+.editor h2 { font-family: var(--serif); font-size: 24px; margin: 0 0 4px; }
+.editor .sub { color: var(--ink-dim); font-size: 12px; margin-bottom: 24px; }
+.editor .actions { display: flex; gap: 12px; margin-top: 10px; align-items: center; }
+.editor .actions .spacer { flex: 1; }
+
+/* ── Toast ─────────────────────────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 26px; left: 50%; transform: translate(-50%, 20px);
+  z-index: 90; padding: 11px 20px; border-radius: 2px;
+  background: var(--ink); color: var(--bg); font-size: 12px;
+  opacity: 0; pointer-events: none; transition: all .25s;
+  max-width: 80vw;
+}
+#toast.show { opacity: 1; transform: translate(-50%, 0); }
+#toast.err { background: var(--err); color: #fff; }
+
+@media (max-width: 760px) {
+  .row { grid-template-columns: 40px 1fr auto; }
+  .row .what { display: none; }
+  .row .idx { font-size: 22px; }
+  .event { grid-template-columns: 90px 12px 1fr; }
+  .event .lat { display: none; }
+  .editor .grid2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="masthead">
+    <div class="brand">
+      <div class="over">Shared Skills Registry · MCP</div>
+      <h1>Open <em>SSR</em></h1>
+    </div>
+    <div class="masthead-right">
+      <div class="server-status"><span class="dot" id="statusDot"></span><span id="statusText">connecting…</span></div>
+      <button class="btn accent" id="newBtn">+ New entry</button>
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <a href="#registry" data-view="registry">Registry</a>
+    <a href="#activity" data-view="activity">Activity</a>
+  </nav>
+
+  <main id="view"></main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel" aria-label="Skill detail"></aside>
+<div id="toast" role="status"></div>
+
+<script>
+"use strict";
+/* ── state ── */
+const S = {
+  view: "registry",
+  skills: [],
+  query: "",
+  category: "",
+  panelSkill: null,
+  bundles: {},          // name -> bundle
+  events: [],
+  pollTimer: null,
+  editing: null,        // null | {} (new) | skill (existing)
+};
+
+const $ = (sel, el) => (el || document).querySelector(sel);
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+async function api(path, opts) {
+  const res = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, opts));
+  if (!res.ok) {
+    let msg = res.status + " " + res.statusText;
+    try { const body = await res.json(); msg = (body.detail && (body.detail.message || body.detail.code)) || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  return res.json();
+}
+
+function toast(msg, isErr) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.className = "show" + (isErr ? " err" : "");
+  clearTimeout(t._h);
+  t._h = setTimeout(() => { t.className = ""; }, 2600);
+}
+
+/* ── health ── */
+async function checkHealth() {
+  try {
+    await api("/healthz");
+    $("#statusDot").className = "dot up";
+    $("#statusText").textContent = "server up";
+  } catch (e) {
+    $("#statusDot").className = "dot";
+    $("#statusText").textContent = "unreachable";
+  }
+}
+
+/* ── data ── */
+async function loadSkills() {
+  const data = await api("/registry/skills");
+  S.skills = data.skills;
+}
+async function loadEvents() {
+  const data = await api("/audit/recent?limit=100");
+  S.events = data.events;
+}
+
+/* ── render: registry ── */
+function stamp(status) {
+  const cls = status === "active" ? "active" : status === "deprecated" ? "deprecated" : "other";
+  return '<span class="stamp ' + cls + '">' + esc(status) + "</span>";
+}
+
+function renderRegistry() {
+  const q = S.query.trim().toLowerCase();
+  const cats = [...new Set(S.skills.map((s) => s.category))].sort();
+  const filtered = S.skills.filter((s) => {
+    if (S.category && s.category !== S.category) return false;
+    if (!q) return true;
+    return [s.name, s.title, s.summary, s.owner, s.applicability, (s.tags || []).join(" ")].join(" ").toLowerCase().includes(q);
+  });
+
+  let rows;
+  if (!S.skills.length) {
+    rows = '<div class="empty"><div class="big">The ledger is empty.</div>Add your first skill entry with “New entry”, or edit <code>config/shared_skills.yaml</code> directly.</div>';
+  } else if (!filtered.length) {
+    rows = '<div class="empty"><div class="big">No matches.</div>Try a different search or category.</div>';
+  } else {
+    rows = filtered.map((s, i) => {
+      const missing = s.source_exists === false ? '<span class="warn-chip">bundle missing</span>' : "";
+      return (
+        '<div class="row" style="--i:' + Math.min(i, 14) + '" data-name="' + esc(s.name) + '">' +
+          '<div class="idx">' + String(i + 1).padStart(2, "0") + "</div>" +
+          '<div class="who"><div class="name">' + esc(s.name) + '</div><div class="meta">' + esc(s.category) + " · " + esc(s.owner) + "</div></div>" +
+          '<div class="what">' + esc(s.summary) + "</div>" +
+          '<div class="end">' + missing + stamp(s.lifecycle_status) + '<span class="arrow">→</span></div>' +
+        "</div>"
+      );
+    }).join("");
+  }
+
+  $("#view").innerHTML =
+    '<div class="toolbar">' +
+      '<div class="search"><input type="search" id="q" placeholder="Search name, summary, tags…" value="' + esc(S.query) + '"></div>' +
+      '<select id="cat"><option value="">all categories</option>' +
+        cats.map((c) => '<option value="' + esc(c) + '"' + (c === S.category ? " selected" : "") + ">" + esc(c) + "</option>").join("") +
+      "</select>" +
+      '<span class="count">' + filtered.length + " / " + S.skills.length + " entries</span>" +
+    "</div>" +
+    '<div class="ledger">' + rows + "</div>";
+
+  $("#q").addEventListener("input", (e) => { S.query = e.target.value; renderRegistry(); $("#q").focus(); const v = $("#q"); v.setSelectionRange(v.value.length, v.value.length); });
+  $("#cat").addEventListener("change", (e) => { S.category = e.target.value; renderRegistry(); });
+  document.querySelectorAll(".row").forEach((r) => r.addEventListener("click", () => openPanel(r.dataset.name)));
+}
+
+/* ── render: detail panel ── */
+function shaHtml(sha) {
+  const groups = [sha.slice(0, 6), sha.slice(6, 12), sha.slice(12, 18)];
+  return '<span class="sha" title="click to copy full sha256" data-sha="' + esc(sha) + '">' +
+    groups.map((g) => '<span class="h">' + esc(g) + "</span>").join("") + '<span class="h">…</span></span>';
+}
+
+async function openPanel(name) {
+  const skill = S.skills.find((s) => s.name === name);
+  if (!skill) return;
+  S.panelSkill = skill;
+  const panel = $("#panel");
+
+  const kv = [
+    ["title", esc(skill.title), "serif"],
+    ["summary", esc(skill.summary), "serif"],
+    ["applicability", esc(skill.applicability), "serif"],
+    ["category", esc(skill.category)],
+    ["owner", esc(skill.owner)],
+    ["source", esc(skill.source)],
+    ["docs_path", esc(skill.docs_path)],
+    ["install guidance", esc(skill.install_guidance), "serif"],
+    ["tags", (skill.tags || []).map((t) => '<span class="tag">' + esc(t) + "</span>").join(" ") || "—"],
+  ].map(([k, v, cls]) => "<dt>" + k + '</dt><dd class="' + (cls || "") + '">' + v + "</dd>").join("");
+
+  panel.innerHTML =
+    '<button class="close" id="panelClose" aria-label="Close">✕</button>' +
+    '<div class="over" style="font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-dim)">Registry entry</div>' +
+    "<h2>" + esc(skill.name) + "</h2>" +
+    '<div class="sub">' + stamp(skill.lifecycle_status) + (skill.source_exists === false ? ' <span class="warn-chip">bundle missing on server</span>' : "") + "</div>" +
+    '<div style="display:flex;gap:10px;margin-bottom:6px">' +
+      '<button class="btn ghost" id="editBtn">Edit entry</button>' +
+    "</div>" +
+    '<dl class="kv">' + kv + "</dl>" +
+    '<div class="section-title"><span>Bundle</span><span id="bundleMeta"></span></div>' +
+    '<div id="bundleBox"><div class="note">Loading bundle…</div></div>';
+
+  panel.classList.add("open");
+  $("#scrim").classList.add("open");
+  $("#panelClose").addEventListener("click", closePanel);
+  $("#editBtn").addEventListener("click", () => { closePanel(); openEditor(skill); });
+
+  const box = $("#bundleBox");
+  if (skill.lifecycle_status !== "active") {
+    box.innerHTML = '<div class="note">Bundle retrieval is only available for <b>active</b> skills. This entry is “' + esc(skill.lifecycle_status) + "”.</div>";
+    return;
+  }
+  try {
+    const bundle = S.bundles[name] || (S.bundles[name] = await api("/tools/retrieve_shared_skill", { method: "POST", body: JSON.stringify({ name: name, include_bundle: true }) }));
+    if (S.panelSkill !== skill) return;
+    $("#bundleMeta").textContent = bundle.file_count + " files · " + fmtBytes(bundle.total_size_bytes);
+    box.innerHTML = bundle.files.map((f, i) =>
+      '<div class="file">' +
+        '<div class="file-head" data-i="' + i + '">' +
+          '<span class="path">' + esc(f.path) + "</span>" +
+          shaHtml(f.sha256) +
+          '<span class="size">' + fmtBytes(f.size_bytes) + "</span>" +
+        "</div>" +
+        '<pre hidden>' + esc(f.content) + "</pre>" +
+      "</div>"
+    ).join("") +
+    '<div class="note">Every file is checksummed with SHA-256. The caller-local adapter re-verifies these before writing anything to disk.</div>';
+
+    box.querySelectorAll(".file-head").forEach((h) => h.addEventListener("click", (e) => {
+      if (e.target.closest(".sha")) return;
+      const pre = h.parentElement.querySelector("pre");
+      pre.hidden = !pre.hidden;
+    }));
+    box.querySelectorAll(".sha").forEach((el) => el.addEventListener("click", () => {
+      navigator.clipboard.writeText(el.dataset.sha).then(() => toast("sha256 copied"));
+    }));
+  } catch (e) {
+    box.innerHTML = '<div class="note" style="color:var(--err)">Bundle unavailable: ' + esc(e.message) + "</div>";
+  }
+}
+
+function closePanel() {
+  S.panelSkill = null;
+  $("#panel").classList.remove("open");
+  $("#scrim").classList.remove("open");
+}
+
+function fmtBytes(n) {
+  if (n == null) return "";
+  if (n < 1024) return n + " B";
+  return (n / 1024).toFixed(1) + " KB";
+}
+
+/* ── render: activity ── */
+function renderActivity() {
+  let items;
+  if (!S.events.length) {
+    items = '<div class="empty"><div class="big">No activity yet.</div>Tool calls and local install results will appear here as they happen.</div>';
+  } else {
+    items = S.events.map((ev, i) => {
+      const args = ev.arguments && Object.keys(ev.arguments).length
+        ? Object.entries(ev.arguments).filter(([, v]) => v !== null && v !== undefined).map(([k, v]) => k + "=" + JSON.stringify(v)).join(" ")
+        : "";
+      const summary = ev.result_summary && Object.keys(ev.result_summary).length
+        ? Object.entries(ev.result_summary).map(([k, v]) => k + ": " + JSON.stringify(v)).join(" · ")
+        : "";
+      return (
+        '<div class="event" style="--i:' + Math.min(i, 18) + '">' +
+          '<span class="t">' + esc(fmtTime(ev.created_at)) + "</span>" +
+          '<span class="st ' + (ev.status === "ok" ? "ok" : "error") + '"></span>' +
+          '<span class="desc"><span class="tool">' + esc(ev.tool_name || ev.event_type) + "</span>" +
+            (args ? ' <span class="args">' + esc(args) + "</span>" : "") +
+            (summary ? ' <span class="args">— ' + esc(summary) + "</span>" : "") +
+            (ev.error_class ? ' <span class="err-class">' + esc(ev.error_class) + "</span>" : "") +
+          "</span>" +
+          '<span class="lat">' + (ev.latency_ms != null ? ev.latency_ms + " ms" : "") + "</span>" +
+        "</div>"
+      );
+    }).join("");
+  }
+  $("#view").innerHTML =
+    '<div class="toolbar"><span class="count">' + S.events.length + ' recorded events · newest first · auto-refreshing</span></div>' +
+    '<div class="timeline">' + items + "</div>";
+}
+
+function fmtTime(iso) {
+  try {
+    const d = new Date(iso);
+    return d.toLocaleDateString(undefined, { month: "short", day: "2-digit" }) + " " +
+           d.toLocaleTimeString(undefined, { hour12: false });
+  } catch (e) { return iso; }
+}
+
+/* ── render: editor ── */
+function openEditor(skill) {
+  S.editing = skill ? Object.assign({}, skill) : null;
+  const s = skill || {};
+  const isNew = !skill;
+  const f = (key, label, opts) => {
+    opts = opts || {};
+    const val = esc(s[key] ?? "");
+    const hint = opts.hint ? '<span class="hint">' + esc(opts.hint) + "</span>" : "";
+    const inner = opts.area
+      ? '<textarea name="' + key + '" ' + (opts.rows ? 'rows="' + opts.rows + '"' : "") + " required>" + val + "</textarea>"
+      : '<input type="text" name="' + key + '" value="' + val + '" ' + (opts.pattern ? 'pattern="' + opts.pattern + '"' : "") + (opts.ro ? " readonly" : "") + " required>";
+    return '<label class="field"><span class="lab"><span>' + label + "</span>" + hint + "</span>" + inner + "</label>";
+  };
+
+  $("#view").innerHTML =
+    '<div class="editor">' +
+      "<h2>" + (isNew ? "New registry entry" : "Edit “" + esc(s.name) + "”") + "</h2>" +
+      '<div class="sub">' + (isNew
+        ? "Registers metadata that points at a SKILL.md already on this server (under a configured content root). This does not upload files."
+        : "Changes are validated with the same rules as the registry loader, then written atomically to shared_skills.yaml.") + "</div>" +
+      '<form id="skillForm">' +
+        '<div class="grid2">' +
+          f("name", "name", { hint: "lowercase slug", pattern: "[a-z0-9][a-z0-9_.\\-]{0,127}", ro: !isNew }) +
+          f("title", "title") +
+          f("category", "category") +
+          f("owner", "owner") +
+          f("source", "source") +
+          '<label class="field"><span class="lab"><span>lifecycle_status</span></span>' +
+            '<select name="lifecycle_status">' +
+              ["active", "draft", "deprecated"].map((v) => '<option value="' + v + '"' + ((s.lifecycle_status || "active") === v ? " selected" : "") + ">" + v + "</option>").join("") +
+            "</select></label>" +
+        "</div>" +
+        f("docs_path", "docs_path", { hint: "relative path to SKILL.md on this server" }) +
+        f("summary", "summary", { area: true, rows: 2 }) +
+        f("applicability", "applicability", { area: true, rows: 2, hint: "when should an agent reach for this?" }) +
+        f("install_guidance", "install_guidance", { area: true, rows: 2 }) +
+        f("tags", "tags", { hint: "comma-separated" }) +
+        '<div class="actions">' +
+          '<button type="submit" class="btn accent">' + (isNew ? "Add to registry" : "Save changes") + "</button>" +
+          '<button type="button" class="btn ghost" id="cancelBtn">Cancel</button>' +
+          '<span class="spacer"></span>' +
+          (isNew ? "" : '<button type="button" class="btn danger" id="deleteBtn">Delete entry</button>') +
+        "</div>" +
+      "</form>" +
+    "</div>";
+
+  // tags arrive as a list; the form wants text
+  const tagsInput = $('[name="tags"]');
+  tagsInput.value = (s.tags || []).join(", ");
+  tagsInput.required = false;
+
+  $("#cancelBtn").addEventListener("click", () => setView("registry"));
+  $("#skillForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const entry = {};
+    for (const [k, v] of fd.entries()) entry[k] = String(v).trim();
+    entry.tags = entry.tags ? entry.tags.split(",").map((t) => t.trim()).filter(Boolean) : [];
+    try {
+      const result = await api("/registry/skills/" + encodeURIComponent(entry.name), { method: "PUT", body: JSON.stringify(entry) });
+      toast(result.created ? "Added “" + entry.name + "” to the registry" : "Saved “" + entry.name + "”");
+      S.bundles = {};
+      await loadSkills();
+      setView("registry");
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
+  const del = $("#deleteBtn");
+  if (del) del.addEventListener("click", async () => {
+    if (!confirm("Delete “" + s.name + "” from the registry? Bundle files on disk are not touched.")) return;
+    try {
+      await api("/registry/skills/" + encodeURIComponent(s.name), { method: "DELETE" });
+      toast("Deleted “" + s.name + "”");
+      S.bundles = {};
+      await loadSkills();
+      setView("registry");
+    } catch (err) {
+      toast(err.message, true);
+    }
+  });
+}
+
+/* ── view switching ── */
+function setView(view) {
+  S.view = view;
+  if (location.hash !== "#" + view) history.replaceState(null, "", "#" + view);
+  document.querySelectorAll("nav.tabs a").forEach((a) => a.classList.toggle("active", a.dataset.view === view));
+  clearInterval(S.pollTimer);
+  if (view === "registry") {
+    renderRegistry();
+  } else if (view === "activity") {
+    renderActivity();
+    loadEvents().then(renderActivity).catch(() => {});
+    S.pollTimer = setInterval(() => loadEvents().then(() => { if (S.view === "activity" && !S.editing) renderActivity(); }).catch(() => {}), 5000);
+  }
+}
+
+/* ── boot ── */
+window.addEventListener("hashchange", () => {
+  const v = location.hash.replace("#", "") || "registry";
+  if (v === "registry" || v === "activity") { S.editing = null; setView(v); }
+});
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePanel(); });
+$("#scrim").addEventListener("click", closePanel);
+$("#newBtn").addEventListener("click", () => { closePanel(); S.editing = {}; document.querySelectorAll("nav.tabs a").forEach((a) => a.classList.remove("active")); clearInterval(S.pollTimer); openEditor(null); });
+
+(async function boot() {
+  checkHealth();
+  setInterval(checkHealth, 15000);
+  try {
+    await loadSkills();
+  } catch (e) {
+    toast("Could not load registry: " + e.message, true);
+  }
+  const v = location.hash.replace("#", "");
+  setView(v === "activity" ? "activity" : "registry");
+})();
+</script>
+</body>
+</html>

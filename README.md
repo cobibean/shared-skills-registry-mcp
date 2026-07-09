@@ -38,6 +38,7 @@ The first public slice is intentionally narrow:
 3. **MCP access** — exposes the same SSR operations to MCP-compatible agents through `client/stdio_server.py`.
 4. **Local install path** — installs only into an explicitly configured local skills root, with path/frontmatter/checksum validation.
 5. **Audit trail** — records every tool call and local install result to a JSONL activity log, readable via `GET /audit/recent`.
+6. **Control panel** — a zero-build web UI at `/ui` for browsing/searching the registry, inspecting bundles and checksums, watching the activity timeline, and editing registry entries.
 
 The core path is:
 
@@ -63,6 +64,21 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
   -H 'Content-Type: application/json' \
   -d '{}'
 ```
+
+Then open the control panel at <http://127.0.0.1:8765/ui>.
+
+## Control panel
+
+The UI is a single static file (`ui/index.html`) served by the same FastAPI process — no Node toolchain, no build step, works offline, and respects `prefers-color-scheme` for light/dark.
+
+It gives you:
+
+- **Registry** — search/filter every entry (including drafts and deprecated ones), with a warning chip when an entry's `docs_path` does not resolve on the server.
+- **Skill detail** — full metadata plus the retrieved bundle: file list, sizes, and SHA-256 checksums (click to copy, click a file to preview its content).
+- **Activity** — the audit timeline, auto-refreshing, newest first.
+- **Registry editing** — add, edit, deprecate, or delete entries. Edits are validated with the same rules as the registry loader and written atomically to `shared_skills.yaml`. Editing is metadata-only: it points at bundle files already on the server host and never uploads or executes anything.
+
+The editing surface lives on separate `/registry/...` admin routes, not on the agent-facing `/tools/...` surface, and every edit is recorded in the audit log.
 
 ## MCP usage
 
@@ -206,8 +222,10 @@ src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
   audit.py                       Narrow JSONL activity log
   config.py                      Local/private bind-safe settings
+  registry_edit.py               Registry editing (UI-facing admin routes)
   shared_skills.py               Ported registry/retrieve/install logic
 tests/                           SSR core and HTTP endpoint tests
+ui/index.html                    Control panel (served at /ui, zero build step)
 docs/                            Product, demo, security, and extraction reference docs
 ```
 
