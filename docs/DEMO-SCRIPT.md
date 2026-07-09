@@ -101,4 +101,4 @@ The goal is to make MCP infrastructure feel inspectable instead of invisible.
 - [ ] MCP discovery is visible.
 - [ ] Local install is bounded to a scratch/configured directory.
 - [ ] No private names, paths, secrets, or internal fleet details appear.
-- [ ] No Docker-specific assumption is required for the demo.
+- [ ] Demo uses the local Python/MCP runtime shape from this repo.

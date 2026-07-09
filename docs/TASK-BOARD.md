@@ -13,28 +13,30 @@ Owner: docs agent
 - [x] Create repo scaffold.
 - [x] Seed README with product promise, MVP boundary, non-goals, and demo journey.
 - [x] Add product promise doc.
-- [ ] Review README tone so it sounds like a real public project, not internal notes.
+- [x] Rewrite README so it explains what this is, why to use it, and how to run it.
 - [ ] Add first screenshot/GIF placeholder once UI exists.
 
 ## Lane B — Registry core
 
 Owner: backend agent
 
-- [ ] Define registry entry shape.
-- [ ] Define skill bundle file rules.
-- [ ] Implement list/search/describe/retrieve over local sample registry.
-- [ ] Add checksum generation/verification.
-- [ ] Add tests for invalid paths and malformed bundles.
+- [x] Align registry entry shape with the working private SSR v1 schema.
+- [x] Define skill bundle file rules.
+- [x] Implement list/search/describe/retrieve over local sample registry.
+- [x] Add checksum generation/verification.
+- [x] Add tests for invalid/malformed registry and checksum failure.
 
-## Lane C — MCP server
+## Lane C — MCP / HTTP server
 
 Owner: MCP agent
 
-- [ ] Expose `list_shared_skills`.
-- [ ] Expose `search_shared_skills`.
-- [ ] Expose `describe_shared_skill`.
-- [ ] Expose `retrieve_shared_skill`.
-- [ ] Document how to connect an MCP-compatible agent.
+- [x] Expose HTTP `/tools/list_shared_skills`.
+- [x] Expose HTTP `/tools/search_shared_skills`.
+- [x] Expose HTTP `/tools/describe_shared_skill`.
+- [x] Expose HTTP `/tools/retrieve_shared_skill`.
+- [x] Expose HTTP `/tools/install_shared_skill` as authorization/bundle-return path.
+- [x] Add SSR-only MCP stdio adapter at `client/stdio_server.py`.
+- [ ] Add polished MCP client configuration examples.
 
 ## Lane D — UI
 
@@ -50,23 +52,24 @@ Owner: UI agent
 
 Owner: adapter agent
 
-- [ ] Configure a local destination skill directory.
-- [ ] Validate safe relative bundle paths.
-- [ ] Write only allowed files/directories.
-- [ ] Verify checksum before install.
+- [x] Configure a local destination skill directory.
+- [x] Validate safe relative bundle paths.
+- [x] Write only allowed files/directories.
+- [x] Verify checksum before install.
 - [ ] Record install result in audit log.
 
 ## Lane F — Trust, safety, and launch polish
 
 Owner: security/docs/QA agents
 
-- [ ] Security boundary doc.
+- [x] Security boundary doc.
+- [x] Public-safe private MCP extraction reference.
 - [ ] Secret/private-term scan before public release.
-- [ ] Fresh clone smoke test.
+- [x] Fresh local test smoke: `pytest -q`.
 - [ ] Known limitations section.
 - [ ] Launch post/video outline.
 
-## Cobi review gates
+## Review gates
 
 - [ ] Gate 2: First demo review.
 - [ ] Gate 3: Public safety/readiness review.

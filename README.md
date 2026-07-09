@@ -2,15 +2,17 @@
 
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
-Shared Skills Registry MCP lets you keep agent skills in one place, make them discoverable to multiple agents, and install them into local agent runtimes without turning the registry into a remote-control system.
+Shared Skills Registry MCP is the public, SSR-only extraction of a working private MCP server. The useful piece is simple: keep reusable agent skills in one registry, let agents discover and retrieve them over MCP, and install them locally with guardrails instead of copy-pasting `SKILL.md` folders around by hand.
 
-Think of it as a small package manager for agent skills:
+This repo now follows the same core shape as the private SSR implementation:
 
-- publish a skill once;
-- search and inspect it from a UI or an MCP-compatible agent;
-- retrieve the exact bundle with metadata and checksums;
-- install it into a configured local skill directory;
-- keep a visible audit trail of what was retrieved or installed.
+- Python service using the same local runtime shape as the working SSR implementation.
+- YAML-backed `version: 1` skill registry.
+- FastAPI `/tools/...` endpoints matching the private SSR tool names.
+- MCP stdio adapter for agent-facing use.
+- Checksum-bearing skill bundle retrieval.
+- Caller-local install adapter that writes only into a configured local skill directory.
+- Tests proving the example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
 
 ## Why this exists
 
@@ -28,72 +30,131 @@ Shared Skills Registry MCP gives those skills a home.
 
 ## What it does
 
-The first public version is intentionally narrow:
+The first public slice is intentionally narrow:
 
-1. **Registry** — stores public-safe skill metadata and bundle locations.
-2. **MCP access** — exposes tools so agents can list, search, describe, and retrieve skills.
-3. **Local install path** — installs only into configured local skill directories, with path/checksum validation.
-4. **Visibility** — gives humans a simple way to see available skills, details, validation state, and important activity.
+1. **Registry** — stores public-safe skill metadata and bundle paths.
+2. **HTTP tools** — exposes `/tools/list_shared_skills`, `/tools/search_shared_skills`, `/tools/describe_shared_skill`, `/tools/retrieve_shared_skill`, and `/tools/install_shared_skill`.
+3. **MCP access** — exposes the same SSR operations to MCP-compatible agents through `client/stdio_server.py`.
+4. **Local install path** — installs only into an explicitly configured local skills root, with path/frontmatter/checksum validation.
 
-The core demo path is:
+The core path is:
 
 ```text
 publish a skill → discover it over MCP → inspect/retrieve the bundle → install it locally
 ```
 
-## Who this is for
+## Quickstart
 
-Use this if you are:
+```bash
+python -m venv .venv
+. .venv/bin/activate
+pip install -e '.[test]'
+pytest -q
+uvicorn shared_skills_registry_mcp.app:app --host 127.0.0.1 --port 8765
+```
 
-- running more than one AI agent or agent runtime;
-- building reusable skills you want to share across agents/devices;
-- tired of copy-pasting `SKILL.md` folders by hand;
-- experimenting with MCP as infrastructure, not just one-off tools;
-- trying to make agent capabilities visible and governable.
+In another shell:
 
-## How it works
+```bash
+curl -s http://127.0.0.1:8765/healthz
+curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
+  -H 'Content-Type: application/json' \
+  -d '{}'
+```
 
-A skill bundle is a directory containing a `SKILL.md` plus optional support files such as references, templates, scripts, or assets.
+## MCP usage
 
-The registry tracks metadata like:
+The MCP stdio adapter lives at:
 
-- name and description;
-- version/status/category/tags;
-- bundle path/source;
-- supported runtimes;
-- risk level;
-- checksum/validation state.
+```text
+client/stdio_server.py
+```
 
-Agents talk to the registry through MCP tools. Local installs are handled by an adapter that writes to an explicitly configured local destination. The registry should not get arbitrary shell access or mutate remote agent profiles directly.
+It talks to the local HTTP service through `SSR_MCP_URL` and installs skills into `SSR_MCP_SKILLS_ROOT`.
 
-## Planned MCP tools
+Example environment:
 
-The initial MCP surface mirrors the existing SSR shape:
+```bash
+export SSR_MCP_URL=http://127.0.0.1:8765
+export SSR_MCP_SKILLS_ROOT=/tmp/ssr-demo-skills
+python client/stdio_server.py
+```
+
+MCP tools exposed:
 
 - `list_shared_skills`
 - `search_shared_skills`
 - `describe_shared_skill`
 - `retrieve_shared_skill`
-- bounded install/authorization flow for local skill installation
+- `install_shared_skill`
 
-## Example registry entry
+## Registry schema
+
+The public schema is intentionally close to the working private SSR schema:
 
 ```yaml
+version: 1
 skills:
   - name: demo-research-brief
     title: Demo Research Brief
-    description: A generic public-safe example skill used to demonstrate registry browsing, MCP retrieval, and local install.
-    version: 0.1.0
+    summary: Create a concise research brief from public notes or URLs.
     category: demo
-    tags: [demo, writing, research]
-    license: MIT
-    status: draft
-    risk_level: low
-    bundle_path: examples/skills/demo-research-brief
-    installable_runtimes: [generic-filesystem]
+    owner: example
+    source: local-example
+    docs_path: examples/skills/demo-research-brief/SKILL.md
+    applicability: Demonstrates registry browsing, MCP retrieval, and local install.
+    lifecycle_status: active
+    install_guidance: Install into a configured local scratch skills directory, then reload your agent skills if needed.
+    tags:
+      - demo
+      - writing
+      - research
 ```
 
-See [`registry.example.yaml`](registry.example.yaml) and [`examples/skills/demo-research-brief`](examples/skills/demo-research-brief).
+See:
+
+- [`config/shared_skills.yaml`](config/shared_skills.yaml)
+- [`registry.example.yaml`](registry.example.yaml)
+- [`examples/skills/demo-research-brief`](examples/skills/demo-research-brief)
+
+## Bundle rules
+
+A skill bundle is rooted at the directory containing `SKILL.md`.
+
+Always included:
+
+```text
+SKILL.md
+```
+
+Allowed support directories:
+
+```text
+references/
+templates/
+scripts/
+assets/
+```
+
+Every retrieved file includes:
+
+- relative path;
+- size in bytes;
+- SHA-256 checksum;
+- content.
+
+Install validation checks:
+
+- no absolute paths;
+- no null bytes;
+- no `..` path escapes;
+- only allowed support directories;
+- `SKILL.md` is required;
+- `SKILL.md` frontmatter must be valid YAML;
+- frontmatter `name` must match the requested skill;
+- checksums must match before writing;
+- writes are atomic;
+- destination must stay inside the configured local skills root.
 
 ## What this is not
 
@@ -108,32 +169,24 @@ It is not:
 - arbitrary code execution;
 - a secret-bearing internal ops dashboard.
 
-The point is to make reusable skills portable and visible without giving the registry broad power over your agents.
+The registry can return a checked bundle. The local adapter decides whether and where to install it. That boundary is the product.
 
-## Current status
-
-This repository currently contains the public scaffold, product boundary, example registry, and demo skill bundle. The next implementation step is to port the working SSR-style registry/MCP behavior into this public repo as a small vertical slice.
-
-See:
-
-- [`docs/PRODUCT-PROMISE.md`](docs/PRODUCT-PROMISE.md)
-- [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md)
-- [`docs/TASK-BOARD.md`](docs/TASK-BOARD.md)
-- [`docs/SECURITY-BOUNDARY.md`](docs/SECURITY-BOUNDARY.md)
-
-## Development shape
-
-No Docker assumption. The first working version should run as a normal local service/MCP server, matching the existing SSR MCP direction as closely as possible.
-
-Planned layout:
+## Current project layout
 
 ```text
-apps/api/               Registry API and audit log service
-apps/web/               Dashboard UI
-packages/registry-core/ Shared registry metadata, validation, bundle logic
-packages/mcp-server/    MCP tools for skill list/search/describe/retrieve
-packages/adapters/      Local install adapters for supported agent runtimes
-examples/skills/        Generic demo skills safe for public release
-docs/                   Product promise, demo script, task board, security boundary
-tests/                  Registry, MCP, and local install verification
+client/                         MCP stdio adapter
+config/shared_skills.yaml        Working example registry
+examples/skills/                 Public-safe demo skill bundles
+src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
+  app.py                         SSR-only HTTP tools
+  config.py                      Local/private bind-safe settings
+  shared_skills.py               Ported registry/retrieve/install logic
+tests/                           SSR core and HTTP endpoint tests
+docs/                            Product, demo, security, and extraction reference docs
 ```
+
+## Reference
+
+- [`docs/PRIVATE-MCP-REFERENCE.md`](docs/PRIVATE-MCP-REFERENCE.md) explains the public-safe architecture extraction from the larger private MCP server.
+- [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) describes the target demo path.
+- [`docs/SECURITY-BOUNDARY.md`](docs/SECURITY-BOUNDARY.md) documents what the registry does and does not do.

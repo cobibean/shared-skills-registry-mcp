@@ -258,7 +258,7 @@ The UI should make these boundaries obvious:
 | Area | Private MCP server | Shared Skills Registry MCP public repo | Decision |
 |---|---|---|---|
 | Product scope | Fleet coordination + A2A + capability hub + SSR | SSR only | Keep public scope narrow. |
-| Runtime | Python service + MCP stdio adapter | Scaffold moving toward same shape | Use Python/MCP shape, no Docker assumption. |
+| Runtime | Python service + MCP stdio adapter | Scaffold moving toward same shape | Use Python/MCP shape from the working implementation. |
 | Registry | YAML metadata + skill source tree | Example YAML + demo skill | Align schema with private SSR v1. |
 | Discovery | list/search/describe implemented | Not implemented yet | Port registry core first. |
 | Retrieval | Checked bundle with file hashes | Not implemented yet | Port bundle retrieval behavior. |
