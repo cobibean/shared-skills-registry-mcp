@@ -2,6 +2,8 @@
 
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
+![Open SSR control panel demo](docs/assets/open-ssr-demo.gif)
+
 Shared Skills Registry MCP is the public, SSR-only extraction of a working private MCP server. The useful piece is simple: keep reusable agent skills in one registry, let agents discover and retrieve them over MCP, and install them locally with guardrails instead of copy-pasting `SKILL.md` folders around by hand.
 
 This repo now follows the same core shape as the private SSR implementation:
@@ -95,6 +97,7 @@ Example environment:
 ```bash
 export SSR_MCP_URL=http://127.0.0.1:8765
 export SSR_MCP_SKILLS_ROOT=/tmp/ssr-demo-skills
+export SSR_MCP_AUDIT_LOG=$PWD/data/ssr_audit.jsonl
 python client/stdio_server.py
 ```
 
@@ -105,6 +108,12 @@ MCP tools exposed:
 - `describe_shared_skill`
 - `retrieve_shared_skill`
 - `install_shared_skill`
+
+For copy-pasteable client configs, see:
+
+- [`docs/MCP-CLIENT-CONFIG.md`](docs/MCP-CLIENT-CONFIG.md)
+- [`examples/mcp-client-config/shared-skills-registry.mcp.json`](examples/mcp-client-config/shared-skills-registry.mcp.json)
+- [`examples/mcp-client-config/hermes-add-shared-skills-registry.sh`](examples/mcp-client-config/hermes-add-shared-skills-registry.sh)
 
 ## Registry schema
 
@@ -217,6 +226,8 @@ The registry can return a checked bundle. The local adapter decides whether and 
 ```text
 client/                         MCP stdio adapter
 config/shared_skills.yaml        Working example registry
+docs/assets/                     README UI screenshot/GIF assets
+examples/mcp-client-config/      Copy-pasteable MCP client configs
 examples/skills/                 Public-safe demo skill bundles
 src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
