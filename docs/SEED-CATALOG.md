@@ -26,7 +26,7 @@ The default Open SSR registry is intentionally curated. It is not a copy of a pr
 | `writing-great-skills` | Skill authoring | `mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461` |
 | `systematic-debugging` | Software development | `obra/superpowers@6fd4507659784c351abbd2bc264c7162cfd386dc` |
 
-The bundles under `seed/skills/` preserve the approved SSR bundle content from those pinned source copies, with only repository-level whitespace normalization where required. Attribution and licenses are recorded in [`../THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
+The bundles under `skills/` preserve the approved SSR bundle content from those pinned source copies, with only repository-level whitespace normalization where required. This is the canonical bundle tree: users place their own skills alongside the bundled starters under `skills/<name>/`. Attribution and licenses are recorded in [`../THIRD_PARTY_NOTICES.md`](../THIRD_PARTY_NOTICES.md).
 
 ## Open SSR companion skill
 

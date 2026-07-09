@@ -17,7 +17,7 @@ def _client(tmp_path) -> tuple[TestClient, Path]:
     registry.parent.mkdir(parents=True)
     shutil.copy(ROOT / "config" / "shared_skills.yaml", registry)
     shutil.copytree(ROOT / "examples", tmp_path / "examples")
-    shutil.copytree(ROOT / "seed", tmp_path / "seed")
+    shutil.copytree(ROOT / "skills", tmp_path / "skills")
     app = create_app(
         Settings(
             shared_skills_path=str(registry),

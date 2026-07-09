@@ -154,6 +154,28 @@ See:
 - [`registry.example.yaml`](registry.example.yaml)
 - [`examples/skills/demo-research-brief`](examples/skills/demo-research-brief)
 
+## Add your own skill
+
+Bundled and user-added production skills share one canonical tree:
+
+```text
+skills/
+  your-skill/
+    SKILL.md
+    references/
+    templates/
+    scripts/
+    assets/
+```
+
+Place the bundle under `skills/<name>/`, then add a matching entry to `config/shared_skills.yaml` with:
+
+```yaml
+docs_path: skills/your-skill/SKILL.md
+```
+
+The control panel's registry editor can create or update that metadata entry after the files exist on the server host. There is no separate seed namespace: starter status is provenance/catalog information, not a different installation layout.
+
 ## Bundle rules
 
 A skill bundle is rooted at the directory containing `SKILL.md`.
@@ -239,7 +261,7 @@ config/shared_skills.yaml        Starter registry: 12 seeds + companion + exampl
 docs/assets/                     README UI screenshot/GIF assets
 examples/mcp-client-config/      Copy-pasteable MCP client configs
 examples/skills/                 Public-safe example skill bundles
-seed/skills/                     Curated public seed and Open SSR companion bundles
+skills/                         Canonical skill bundles: bundled starters and user-added skills
 src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
   audit.py                       Narrow JSONL activity log

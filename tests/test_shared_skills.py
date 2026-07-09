@@ -63,6 +63,11 @@ def test_seed_catalog_does_not_include_default_hermes_skills():
     assert "hermes-agent" not in names
     assert all(skill["owner"] != "hermes-agent" for skill in directory["skills"])
     assert all("hermes-agent" not in skill["source"].lower() for skill in directory["skills"])
+    assert all(
+        skill["docs_path"].startswith("skills/")
+        for skill in directory["skills"]
+        if skill["name"] not in EXAMPLE_SKILLS
+    )
 
 
 def test_retrieve_example_bundle_includes_skill_and_allowed_support_files():

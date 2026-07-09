@@ -14,7 +14,7 @@ Expanded the default Open SSR registry from one demo bundle to a curated catalog
 
 ## Files created or changed
 
-- `seed/skills/` — 12 pinned seed bundles plus `shared-skills-registry-access`.
+- `skills/` — canonical shared bundle tree containing 12 pinned starter bundles plus `shared-skills-registry-access`; user-added skills belong alongside them.
 - `config/shared_skills.yaml` — 14 active entries total.
 - `examples/skills/demo-research-brief/SKILL.md` — explicit example labeling.
 - `docs/SEED-CATALOG.md` — catalog composition, provenance, security findings, and verification contract.

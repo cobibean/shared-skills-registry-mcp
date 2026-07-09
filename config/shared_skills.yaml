@@ -25,7 +25,7 @@ skills:
   category: mcp
   owner: open-ssr
   source: shared-skills-registry-mcp
-  docs_path: seed/skills/shared-skills-registry-access/SKILL.md
+  docs_path: skills/shared-skills-registry-access/SKILL.md
   applicability: Use when an MCP-compatible consumer agent or orchestrator needs to obtain reusable capabilities from its
     own Shared Skills Registry without confusing registry retrieval with caller-local installation.
   lifecycle_status: active
@@ -44,7 +44,7 @@ skills:
   category: project-continuity
   owner: cobibean
   source: cobibean/project-memory-skill@498d15752c660ab2c2d7426a2668d03ae2934393
-  docs_path: seed/skills/project-memory/SKILL.md
+  docs_path: skills/project-memory/SKILL.md
   applicability: Useful across Hermes, Claude, Codex, and other coding agents; demonstrates a bundle containing references
     and templates.
   lifecycle_status: active
@@ -62,7 +62,7 @@ skills:
   category: marketing
   owner: cobibean
   source: cobibean/website-copywriting-skill@35b727026d6300740c4760b3f59530c7a5b40ecc
-  docs_path: seed/skills/website-copywriting/SKILL.md
+  docs_path: skills/website-copywriting/SKILL.md
   applicability: Makes the starter catalog useful beyond engineering and demonstrates a substantial bundle with references
     and templates.
   lifecycle_status: active
@@ -80,7 +80,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/codebase-design/SKILL.md
+  docs_path: skills/codebase-design/SKILL.md
   applicability: High-quality guidance for designing maintainable modules and interfaces.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -97,7 +97,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/diagnosing-bugs/SKILL.md
+  docs_path: skills/diagnosing-bugs/SKILL.md
   applicability: Strong general debugging workflow; includes a script that exercises nontrivial bundle retrieval and review.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -114,7 +114,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/domain-modeling/SKILL.md
+  docs_path: skills/domain-modeling/SKILL.md
   applicability: Demonstrates persistent project documentation and architectural vocabulary.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -130,7 +130,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/prototype/SKILL.md
+  docs_path: skills/prototype/SKILL.md
   applicability: Clear user-invoked workflow that produces runnable prototypes rather than prose alone.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -147,7 +147,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/tdd/SKILL.md
+  docs_path: skills/tdd/SKILL.md
   applicability: Familiar, broadly useful software-development workflow with linked references.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -163,7 +163,7 @@ skills:
   category: software-development
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/triage/SKILL.md
+  docs_path: skills/triage/SKILL.md
   applicability: Good example of a structured, multi-stage operational skill.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -180,7 +180,7 @@ skills:
   category: productivity
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/handoff/SKILL.md
+  docs_path: skills/handoff/SKILL.md
   applicability: Small, runtime-neutral skill showing that SSR is useful outside large engineering bundles.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -197,7 +197,7 @@ skills:
   category: productivity
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/teach/SKILL.md
+  docs_path: skills/teach/SKILL.md
   applicability: Broadly understandable skill with multiple references that makes the starter catalog less code-only.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -214,7 +214,7 @@ skills:
   category: skill-authoring
   owner: mattpocock
   source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
-  docs_path: seed/skills/writing-great-skills/SKILL.md
+  docs_path: skills/writing-great-skills/SKILL.md
   applicability: Especially appropriate for Open SSR users who need to create and maintain publishable skills.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
@@ -231,7 +231,7 @@ skills:
   category: software-development
   owner: obra
   source: obra/superpowers@6fd4507659784c351abbd2bc264c7162cfd386dc
-  docs_path: seed/skills/systematic-debugging/SKILL.md
+  docs_path: skills/systematic-debugging/SKILL.md
   applicability: Rich bundle with references and scripts that exercises retrieval, checksums, previews, and installation.
   lifecycle_status: active
   install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
