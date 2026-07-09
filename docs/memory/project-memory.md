@@ -56,7 +56,7 @@ Current verified state includes:
 - polished MCP client config examples;
 - curated 14-entry public catalog with 13 canonical production/companion bundles and one explicit example;
 - packaged HTTP and stdio console commands with wheel-safe registry, catalog, example, and UI assets;
-- caller-local installation with configured-root authority and fail-closed override behavior;
+- caller-local installation with configured-root authority, fail-closed override behavior, and staged whole-bundle replacement that removes stale files and rolls back failed swaps;
 - real MCP, generic SDK, clean local Hermes, separate remote Hermes, fresh-clone, and built-wheel verification.
 
 Current known mainline commits:
@@ -64,18 +64,18 @@ Current known mainline commits:
 ```text
 49b12ac Curate public skill catalog
 4e35d47 Harden real MCP stdio release path
-c2b070d Record MCP stdio hardening verification
+4f5351a Make skill overwrites stale-free and atomic
 ```
 
-Latest verified main before this rolling-memory refresh: `c2b070d`.
+Latest verified main before this rolling-memory refresh: `4f5351a`.
 
 Latest verified test result:
 
 ```text
-53 passed, 1 upstream deprecation warning
+55 passed, 1 upstream deprecation warning
 ```
 
-GitHub Actions run `29049841156` passed both the fresh-clone MCP job and built-wheel packaging job.
+GitHub Actions run `29051012487` passed fresh-clone MCP and built-wheel packaging jobs on Python 3.11 and 3.14.
 
 ## Implemented shape
 
