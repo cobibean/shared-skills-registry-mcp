@@ -1,0 +1,12 @@
+skills:
+  - name: demo-research-brief
+    title: Demo Research Brief
+    description: A generic public-safe example skill used to demonstrate registry browsing, MCP retrieval, and local install.
+    version: 0.1.0
+    category: demo
+    tags: [demo, writing, research]
+    license: MIT
+    status: draft
+    risk_level: low
+    bundle_path: examples/skills/demo-research-brief
+    installable_runtimes: [generic-filesystem]
