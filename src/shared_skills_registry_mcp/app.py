@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import time
-from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -11,6 +10,7 @@ from pydantic import BaseModel, Field
 from .audit import AuditLog
 from .config import Settings, load_settings
 from .registry_edit import delete_registry_skill, list_registry_skills, upsert_registry_skill
+from .runtime_paths import default_ui_path
 from .shared_skills import (
     SharedSkillNotFound,
     SharedSkillsConfigError,
@@ -20,7 +20,7 @@ from .shared_skills import (
     search_shared_skills,
 )
 
-_UI_INDEX = Path(__file__).resolve().parents[2] / "ui" / "index.html"
+_UI_INDEX = default_ui_path()
 
 
 class SharedSkillListIn(BaseModel):

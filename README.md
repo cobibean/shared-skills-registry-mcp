@@ -1,5 +1,7 @@
 # Shared Skills Registry MCP
 
+[![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
+
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
 ![Open SSR control panel demo](docs/assets/open-ssr-demo.gif)
@@ -16,6 +18,7 @@ This repo now follows the same core shape as the private SSR implementation:
 - Caller-local install adapter that writes only into a configured local skill directory.
 - Narrow SSR activity log recording every tool call and local install result.
 - Tests proving every bundled seed and example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
+- A real-protocol integration test that launches the HTTP service and stdio adapter as subprocesses, initializes an MCP client session, calls all five tools, and verifies caller-local files and audit records.
 
 ## Why this exists
 
@@ -65,7 +68,7 @@ python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[test]'
 pytest -q
-uvicorn shared_skills_registry_mcp.app:app --host 127.0.0.1 --port 8765
+shared-skills-registry-http
 ```
 
 In another shell:
@@ -94,13 +97,13 @@ The editing surface lives on separate `/registry/...` admin routes, not on the a
 
 ## MCP usage
 
-The MCP stdio adapter lives at:
+The installed MCP stdio entry point is:
 
 ```text
-client/stdio_server.py
+shared-skills-registry-stdio
 ```
 
-It talks to the local HTTP service through `SSR_MCP_URL` and installs skills into `SSR_MCP_SKILLS_ROOT`.
+It talks to the HTTP service through `SSR_MCP_URL` and installs skills only beneath the adapter-configured `SSR_MCP_SKILLS_ROOT`. Model-supplied per-call root overrides are rejected by default. The repository-relative `client/stdio_server.py` remains as a compatibility shim.
 
 Example environment:
 
@@ -108,7 +111,7 @@ Example environment:
 export SSR_MCP_URL=http://127.0.0.1:8765
 export SSR_MCP_SKILLS_ROOT=/tmp/ssr-demo-skills
 export SSR_MCP_AUDIT_LOG=$PWD/data/ssr_audit.jsonl
-python client/stdio_server.py
+shared-skills-registry-stdio
 ```
 
 MCP tools exposed:
@@ -124,6 +127,20 @@ For copy-pasteable client configs, see:
 - [`docs/MCP-CLIENT-CONFIG.md`](docs/MCP-CLIENT-CONFIG.md)
 - [`examples/mcp-client-config/shared-skills-registry.mcp.json`](examples/mcp-client-config/shared-skills-registry.mcp.json)
 - [`examples/mcp-client-config/hermes-add-shared-skills-registry.sh`](examples/mcp-client-config/hermes-add-shared-skills-registry.sh)
+
+### Verify the actual MCP stdio path
+
+With the HTTP service running, exercise the adapter through a generic MCP client session rather than only calling HTTP endpoints:
+
+```bash
+tmp="$(mktemp -d)"
+python scripts/mcp_stdio_smoke.py \
+  --url http://127.0.0.1:8765 \
+  --skills-root "$tmp/skills" \
+  --audit-log "$tmp/local-audit.jsonl"
+```
+
+The smoke initializes MCP, verifies the five-tool catalog, then lists, searches, describes, retrieves, and installs `project-memory`. It exits nonzero if protocol initialization, a tool call, the caller-local install, or the local audit record fails. Use a scratch directory unless you intentionally want to install into a real agent skill root.
 
 ## Registry schema
 
@@ -262,13 +279,14 @@ docs/assets/                     README UI screenshot/GIF assets
 examples/mcp-client-config/      Copy-pasteable MCP client configs
 examples/skills/                 Public-safe example skill bundles
 skills/                         Canonical skill bundles: bundled starters and user-added skills
+scripts/mcp_stdio_smoke.py       Standalone generic MCP protocol smoke
 src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
   audit.py                       Narrow JSONL activity log
   config.py                      Local/private bind-safe settings
   registry_edit.py               Registry editing (UI-facing admin routes)
   shared_skills.py               Ported registry/retrieve/install logic
-tests/                           SSR core and HTTP endpoint tests
+tests/                           SSR core, HTTP, guardrail, and real MCP stdio tests
 ui/index.html                    Control panel (served at /ui, zero build step)
 docs/                            Product, demo, security, and extraction reference docs
 ```

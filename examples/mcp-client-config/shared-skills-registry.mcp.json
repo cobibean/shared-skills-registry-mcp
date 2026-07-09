@@ -1,12 +1,9 @@
 {
   "mcpServers": {
     "shared-skills-registry": {
-      "command": "/absolute/path/to/shared-skills-registry-mcp/.venv/bin/python",
-      "args": [
-        "/absolute/path/to/shared-skills-registry-mcp/client/stdio_server.py"
-      ],
+      "command": "/absolute/path/to/shared-skills-registry-mcp/.venv/bin/shared-skills-registry-stdio",
+      "args": [],
       "env": {
-        "PYTHONPATH": "/absolute/path/to/shared-skills-registry-mcp/src",
         "SSR_MCP_URL": "http://127.0.0.1:8765",
         "SSR_MCP_SKILLS_ROOT": "/absolute/path/to/local/skills",
         "SSR_MCP_AUDIT_LOG": "/absolute/path/to/shared-skills-registry-mcp/data/ssr_audit.jsonl"

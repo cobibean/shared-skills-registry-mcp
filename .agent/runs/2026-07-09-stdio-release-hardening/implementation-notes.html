@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Open SSR stdio release hardening ledger</title>
+<style>body{font-family:Inter,system-ui,sans-serif;line-height:1.5;margin:0;background:#0b1020;color:#e7edf7}main{max-width:1100px;margin:0 auto;padding:32px}section{background:#121a31;border:1px solid #263452;border-radius:16px;padding:20px;margin:18px 0}.status{display:inline-block;border-radius:999px;padding:3px 10px;background:#174d36;color:#baf7d3}.event{border-left:3px solid #6aa6ff;padding-left:12px;margin:10px 0}code{background:#0a0f1e;padding:2px 5px;border-radius:5px}</style></head><body><main>
+<h1>Open SSR real MCP stdio release hardening</h1>
+<section id="resume"><h2>Resume Here</h2><ul>
+<li><strong>Status:</strong> <span class="status">[doing]</span></li>
+<li><strong>Current phase:</strong> commit/push, final remote-device run, and GitHub Actions verification.</li>
+<li><strong>Completed work:</strong> real-protocol pytest, generic MCP smoke, packaged console entry points, wheel-safe catalog/UI assets, constrained CI workflow, clean local Hermes E2E, caller-local root hardening, and source/wheel smoke verification.</li>
+<li><strong>Active work:</strong> publish the implementation commit, clone that exact public commit remotely, run final isolated Hermes E2E, and verify both CI jobs.</li>
+<li><strong>Blockers:</strong> preferred home WSL device was offline; approved low-blast-radius fallback is a disposable Hermes home on the shared fleet host with no service/profile mutation.</li>
+<li><strong>Next exact action:</strong> commit and push the reviewed tree, then use the exact remote commit for CI and remote-device verification.</li>
+<li><strong>Last validation:</strong> <code>53 passed</code>; generic source smoke passed; clean wheel smoke passed with 14 entries, five MCP tools, UI, install, and both audits; clean local Hermes marker passed with eight checksum-matching files.</li>
+<li><strong>Protected paths/user-owned work:</strong> existing Hermes profiles/gateways and private fleet services; disposable test homes only.</li>
+</ul></section>
+<section><h2>Decisions Outside The Spec</h2><ul>
+<li>Use layered deterministic protocol + actual Hermes + remote-device + generic-client evidence rather than three duplicate Hermes profiles.</li>
+<li>The stdio adapter runs beside the caller and owns the local install root; the HTTP registry never writes to remote agent homes.</li>
+<li>Configured <code>SSR_MCP_SKILLS_ROOT</code> is authoritative. Per-call root overrides fail closed unless an operator explicitly enables the escape hatch.</li>
+<li>Release confidence includes the built wheel, not only editable checkouts; canonical assets are force-included into private wheel package data.</li>
+</ul></section>
+<section><h2>Changes And Tradeoffs</h2><ul>
+<li>Added package console commands while retaining the repository-relative stdio script as a compatibility shim.</li>
+<li>Added Python 3.11 Linux CI constraints for deterministic alpha verification. Broader compatibility matrices remain separate release work.</li>
+<li>Kept production catalog storage canonical under <code>skills/</code>; wheel packaging does not introduce a second source-of-truth tree.</li>
+</ul></section>
+<section><h2>Validation</h2><ul>
+<li>Full source suite: 53 passed, one upstream Starlette/httpx deprecation warning.</li>
+<li>Real MCP tests: initialize, tools/list, all five calls, rich retrieval, SHA-256 installation verification, audits, missing-root fail-closed, root-override fail-closed, unavailable-backend protocol integrity.</li>
+<li>Generic SDK smoke: source and wheel environments passed.</li>
+<li>Wheel: 73 files; packaged registry, catalog, example, UI, module, HTTP/stdio console entry points all verified.</li>
+<li>Clean local Hermes: search/describe/retrieve/install via MCP only; installed eight files under scratch profile; fresh skill discovery succeeded; no default-profile residue.</li>
+<li>Workflow syntax: actionlint 1.7.12 passed.</li>
+<li>Changed-file safety scan: no credentials, private keys, JWTs, private operator paths, or private host identifiers.</li>
+</ul></section>
+<section><h2>Evidence</h2><ul><li>Evidence summaries are recorded here and in dated project memory without credentials, raw private host data, or provider logs.</li></ul></section>
+<section><h2>Progress Timeline</h2><div id="timeline"></div></section>
+<script>const progressEvents=[
+{ts:"2026-07-09T19:54:00Z",status:"doing",phase:"protocol",actor:"knwldg",summary:"Initialized the release-hardening ledger and inspected the real stdio seam.",evidence:[]},
+{ts:"2026-07-09T20:05:00Z",status:"done",phase:"generic-and-local",actor:"knwldg",summary:"Passed official MCP SDK smoke and isolated local Hermes search/describe/retrieve/install.",evidence:["five tools","caller-local audit"]},
+{ts:"2026-07-09T20:35:00Z",status:"done",phase:"packaging",actor:"knwldg",summary:"Fixed wheel omissions and verified packaged catalog, UI, HTTP, stdio, installation, and audit paths.",evidence:["73 wheel files","14 entries"]},
+{ts:"2026-07-09T20:43:00Z",status:"done",phase:"root-authority",actor:"knwldg",summary:"A real Hermes failure exposed unsafe/missing root configuration; hardened the adapter and examples, cleaned test-created residue, and passed a clean rerun.",evidence:["configured root authoritative","default target absent"]},
+{ts:"2026-07-09T20:49:00Z",status:"doing",phase:"publish-and-remote",actor:"knwldg",summary:"Prepared reviewed implementation for public commit, remote exact-commit E2E, and CI verification.",evidence:["53 passed","actionlint passed"]}
+];document.getElementById('timeline').innerHTML=progressEvents.map(e=>`<div class="event"><strong>${e.ts}</strong> <code>${e.status}</code> <em>${e.phase}</em><br>${e.summary}${e.evidence?.length?'<br>Evidence: '+e.evidence.join(', '):''}</div>`).join('');</script>
+</main></body></html>

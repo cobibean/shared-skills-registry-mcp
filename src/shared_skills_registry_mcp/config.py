@@ -5,9 +5,11 @@ import ipaddress
 from dataclasses import dataclass, field
 from pathlib import Path
 
-_REPO_ROOT = Path(__file__).resolve().parents[2]
-_DEFAULT_SHARED_SKILLS_PATH = str(_REPO_ROOT / "config" / "shared_skills.yaml")
-_DEFAULT_AUDIT_LOG_PATH = str(_REPO_ROOT / "data" / "ssr_audit.jsonl")
+from .runtime_paths import default_audit_path, default_registry_path, runtime_content_root
+
+_DEFAULT_CONTENT_ROOT = runtime_content_root()
+_DEFAULT_SHARED_SKILLS_PATH = str(default_registry_path())
+_DEFAULT_AUDIT_LOG_PATH = str(default_audit_path())
 
 
 @dataclass
@@ -15,7 +17,7 @@ class Settings:
     bind_host: str = "127.0.0.1"
     port: int = 8765
     shared_skills_path: str = _DEFAULT_SHARED_SKILLS_PATH
-    shared_skill_content_roots: tuple[str, ...] = field(default_factory=lambda: (str(_REPO_ROOT),))
+    shared_skill_content_roots: tuple[str, ...] = field(default_factory=lambda: (str(_DEFAULT_CONTENT_ROOT),))
     audit_log_path: str = _DEFAULT_AUDIT_LOG_PATH
 
     @property
@@ -24,7 +26,7 @@ class Settings:
 
 
 def load_settings() -> Settings:
-    roots_raw = os.environ.get("SSR_MCP_SHARED_SKILL_CONTENT_ROOTS", str(_REPO_ROOT))
+    roots_raw = os.environ.get("SSR_MCP_SHARED_SKILL_CONTENT_ROOTS", str(_DEFAULT_CONTENT_ROOT))
     settings = Settings(
         bind_host=os.environ.get("SSR_MCP_BIND", "127.0.0.1"),
         port=int(os.environ.get("SSR_MCP_PORT", "8765")),

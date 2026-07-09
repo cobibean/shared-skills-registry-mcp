@@ -1,0 +1,185 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PIP_CONSTRAINT: ${{ github.workspace }}/requirements/ci-constraints.txt
+
+jobs:
+  fresh-clone:
+    name: Fresh clone · pytest + generic MCP stdio smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/ci-constraints.txt
+
+      - name: Install from the checked-out source
+        run: python -m pip install -c requirements/ci-constraints.txt -e '.[test]'
+
+      - name: Run the complete test suite
+        run: python -m pytest -q
+
+      - name: Run standalone generic MCP stdio smoke
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          server_log="$tmp/http-service.log"
+          cleanup() {
+            if [[ -n "${server_pid:-}" ]] && kill -0 "$server_pid" 2>/dev/null; then
+              kill "$server_pid" || true
+              wait "$server_pid" || true
+            fi
+            rm -rf "$tmp"
+          }
+          trap cleanup EXIT
+
+          SSR_MCP_AUDIT_LOG="$tmp/server-audit.jsonl" \
+            shared-skills-registry-http >"$server_log" 2>&1 &
+          server_pid=$!
+
+          ready=0
+          for _ in $(seq 1 100); do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            if python - <<'PY'
+          import urllib.request
+          with urllib.request.urlopen("http://127.0.0.1:8765/healthz", timeout=0.5) as response:
+              raise SystemExit(0 if response.status == 200 else 1)
+          PY
+            then
+              ready=1
+              break
+            fi
+            sleep 0.1
+          done
+
+          if [[ "$ready" != 1 ]]; then
+            echo "Open SSR HTTP service failed to become ready" >&2
+            tail -100 "$server_log" >&2 || true
+            exit 1
+          fi
+
+          python scripts/mcp_stdio_smoke.py \
+            --url http://127.0.0.1:8765 \
+            --skills-root "$tmp/skills" \
+            --audit-log "$tmp/local-audit.jsonl"
+
+          test -f "$tmp/skills/project-continuity/project-memory/SKILL.md"
+          test -s "$tmp/server-audit.jsonl"
+          test -s "$tmp/local-audit.jsonl"
+
+  wheel-install:
+    name: Built wheel · packaged catalog/UI/stdio
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements/ci-constraints.txt
+
+      - name: Build wheel without undeclared build state
+        run: |
+          python -m pip install -c requirements/ci-constraints.txt build hatchling
+          python -m build --wheel --no-isolation
+
+      - name: Install wheel into a separate clean environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/open-ssr-wheel-venv
+          /tmp/open-ssr-wheel-venv/bin/pip install \
+            -c "$GITHUB_WORKSPACE/requirements/ci-constraints.txt" \
+            dist/*.whl
+          test -x /tmp/open-ssr-wheel-venv/bin/shared-skills-registry-http
+          test -x /tmp/open-ssr-wheel-venv/bin/shared-skills-registry-stdio
+
+      - name: Smoke installed wheel outside the checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          wheel_python=/tmp/open-ssr-wheel-venv/bin/python
+          wheel_http=/tmp/open-ssr-wheel-venv/bin/shared-skills-registry-http
+          server_log="$tmp/http-service.log"
+          cleanup() {
+            if [[ -n "${server_pid:-}" ]] && kill -0 "$server_pid" 2>/dev/null; then
+              kill "$server_pid" || true
+              wait "$server_pid" || true
+            fi
+            rm -rf "$tmp"
+          }
+          trap cleanup EXIT
+
+          cd /tmp
+          XDG_STATE_HOME="$tmp/state" SSR_MCP_PORT=8766 \
+            "$wheel_http" >"$server_log" 2>&1 &
+          server_pid=$!
+
+          ready=0
+          for _ in $(seq 1 100); do
+            if ! kill -0 "$server_pid" 2>/dev/null; then
+              break
+            fi
+            if "$wheel_python" - <<'PY'
+          import urllib.request
+          with urllib.request.urlopen("http://127.0.0.1:8766/healthz", timeout=0.5) as response:
+              raise SystemExit(0 if response.status == 200 else 1)
+          PY
+            then
+              ready=1
+              break
+            fi
+            sleep 0.1
+          done
+
+          if [[ "$ready" != 1 ]]; then
+            echo "Wheel-installed HTTP service failed to become ready" >&2
+            tail -100 "$server_log" >&2 || true
+            exit 1
+          fi
+
+          "$wheel_python" "$GITHUB_WORKSPACE/scripts/mcp_stdio_smoke.py" \
+            --url http://127.0.0.1:8766 \
+            --skills-root "$tmp/skills" \
+            --audit-log "$tmp/local-audit.jsonl"
+
+          "$wheel_python" - <<'PY'
+          import urllib.request
+          with urllib.request.urlopen("http://127.0.0.1:8766/ui", timeout=2) as response:
+              body = response.read().decode("utf-8")
+          if response.status != 200 or "Shared Skills Registry" not in body:
+              raise SystemExit("packaged UI verification failed")
+          PY
+
+          test -f "$tmp/skills/project-continuity/project-memory/SKILL.md"
+          test -s "$tmp/state/shared-skills-registry-mcp/ssr_audit.jsonl"
+          test -s "$tmp/local-audit.jsonl"

@@ -3,7 +3,7 @@
 Shared Skills Registry MCP has two processes:
 
 1. **HTTP service** — serves `/tools/...`, `/registry/...`, `/audit/recent`, and `/ui`.
-2. **MCP stdio adapter** — `client/stdio_server.py`, which exposes the SSR tools to MCP clients and talks to the HTTP service through `SSR_MCP_URL`.
+2. **MCP stdio adapter** — the `shared-skills-registry-stdio` command, which exposes the SSR tools to MCP clients and talks to the HTTP service through `SSR_MCP_URL`. `client/stdio_server.py` remains as a repository-relative compatibility shim.
 
 Start the HTTP service first:
 
@@ -12,7 +12,7 @@ cd /absolute/path/to/shared-skills-registry-mcp
 python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[test]'
-uvicorn shared_skills_registry_mcp.app:app --host 127.0.0.1 --port 8765
+shared-skills-registry-http
 ```
 
 Then configure your MCP client to launch the stdio adapter.
@@ -24,7 +24,8 @@ Then configure your MCP client to launch the stdio adapter.
 | `SSR_MCP_URL` | no | HTTP service URL. Defaults to `http://127.0.0.1:8765`. |
 | `SSR_MCP_SKILLS_ROOT` | yes for install | Local directory where `install_shared_skill` writes skills. |
 | `SSR_MCP_AUDIT_LOG` | no | Optional JSONL log for local install results. |
-| `PYTHONPATH` | only if not installed editable | Set to the repo `src/` directory when launching with a raw Python script. |
+| `SSR_MCP_ALLOW_SKILLS_ROOT_OVERRIDE` | no | Unsafe-by-default escape hatch. Set to `1` only when a trusted caller must select a per-call local root; otherwise model-supplied root overrides are rejected. |
+| `PYTHONPATH` | legacy raw-script use only | Set to the repo `src/` directory only when using `client/stdio_server.py` without installing the project. |
 
 Use absolute paths in client configs. Most MCP clients launch servers from a different working directory than your shell.
 
@@ -36,12 +37,9 @@ This shape works for clients that accept Claude Desktop/Cursor/Windsurf-style MC
 {
   "mcpServers": {
     "shared-skills-registry": {
-      "command": "/absolute/path/to/shared-skills-registry-mcp/.venv/bin/python",
-      "args": [
-        "/absolute/path/to/shared-skills-registry-mcp/client/stdio_server.py"
-      ],
+      "command": "/absolute/path/to/shared-skills-registry-mcp/.venv/bin/shared-skills-registry-stdio",
+      "args": [],
       "env": {
-        "PYTHONPATH": "/absolute/path/to/shared-skills-registry-mcp/src",
         "SSR_MCP_URL": "http://127.0.0.1:8765",
         "SSR_MCP_SKILLS_ROOT": "/absolute/path/to/local/skills",
         "SSR_MCP_AUDIT_LOG": "/absolute/path/to/shared-skills-registry-mcp/data/ssr_audit.jsonl"
@@ -66,13 +64,14 @@ Hermes has native MCP client commands. With the HTTP service running, add the st
 ```bash
 cd /absolute/path/to/shared-skills-registry-mcp
 hermes mcp add shared-skills-registry \
-  --command /absolute/path/to/shared-skills-registry-mcp/.venv/bin/python \
-  --env PYTHONPATH=/absolute/path/to/shared-skills-registry-mcp/src \
-  --env SSR_MCP_URL=http://127.0.0.1:8765 \
-  --env SSR_MCP_SKILLS_ROOT=/absolute/path/to/local/skills \
-  --env SSR_MCP_AUDIT_LOG=/absolute/path/to/shared-skills-registry-mcp/data/ssr_audit.jsonl \
-  --args /absolute/path/to/shared-skills-registry-mcp/client/stdio_server.py
+  --command /absolute/path/to/shared-skills-registry-mcp/.venv/bin/shared-skills-registry-stdio \
+  --env \
+    SSR_MCP_URL=http://127.0.0.1:8765 \
+    SSR_MCP_SKILLS_ROOT=/absolute/path/to/local/skills \
+    SSR_MCP_AUDIT_LOG=/absolute/path/to/shared-skills-registry-mcp/data/ssr_audit.jsonl
 ```
+
+Hermes performs discovery first and asks which tools to enable. Choose `Y` to enable all five; then start a new session. In unattended test automation, pipe one explicit approval (`printf 'y\n' | hermes mcp add ...`) and always verify with `hermes mcp list` afterward—an interactive cancellation may not be distinguishable from success by exit status alone.
 
 Verify:
 
@@ -81,7 +80,7 @@ hermes mcp list
 hermes mcp test shared-skills-registry
 ```
 
-If your Hermes install already runs from a project where `shared-skills-registry-mcp` is installed into the environment, `PYTHONPATH` can be omitted.
+The command above is installed by `pip install -e .` and by the built wheel, so it does not depend on the MCP client's working directory.
 
 ## Claude Desktop / Cursor / Windsurf
 
@@ -99,9 +98,29 @@ Suggested local install roots:
 
 If you point `SSR_MCP_SKILLS_ROOT` at a real agent skills directory, review a retrieved bundle in the UI first and keep `SSR_MCP_AUDIT_LOG` enabled so local installs are visible in the activity trail.
 
-## Smoke test without an MCP client
+## Real MCP stdio smoke
 
-You can exercise the same server-side tool contracts over HTTP:
+With the HTTP service running, use the included generic MCP client to test protocol initialization, tool discovery, list/search/describe/retrieve, and caller-local installation:
+
+```bash
+tmp="$(mktemp -d)"
+python scripts/mcp_stdio_smoke.py \
+  --url http://127.0.0.1:8765 \
+  --skills-root "$tmp/skills" \
+  --audit-log "$tmp/local-audit.jsonl"
+```
+
+The default smoke installs `project-memory` under its registry category:
+
+```text
+$tmp/skills/project-continuity/project-memory/SKILL.md
+```
+
+That category nesting is part of the install contract. Use `--skill <name>` and `--search-query <query>` to exercise another entry. The script exits nonzero if the protocol, tool set, tool calls, local files, or install audit fail.
+
+## HTTP contract check
+
+HTTP calls are useful for diagnosing the backing service, but they do not prove the MCP stdio transport:
 
 ```bash
 curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
