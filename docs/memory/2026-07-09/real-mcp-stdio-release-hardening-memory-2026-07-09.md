@@ -56,7 +56,7 @@
 - Generic SDK smoke passed from both editable source and a clean wheel environment.
 - Built wheel contained 73 files and included the registry, 13 production bundles, example bundle, UI, stdio module, and console entry points.
 - Clean local Hermes E2E called search/describe/retrieve/install through MCP only, installed eight checksum-matching files into its scratch profile, and discovered the skill in a fresh session.
-- Separate remote Linux Hermes E2E used a loopback-only private tunnel, the exact public commit, the packaged stdio command, and a disposable Hermes home. It installed 11 checksum-matching files locally, wrote one local audit record, discovered the skill in a fresh session, and left existing profile configurations and services unchanged.
+- Separate remote Linux Hermes E2E was rerun against the exact public independent-review closeout commit through a loopback-only private tunnel and packaged stdio command. A stale script was planted under the scratch destination before the real Hermes install; the install removed it, produced 11 checksum-matching files, wrote one local audit record, remained discoverable in a fresh session, and left existing profile configurations and services unchanged.
 - Current fresh-clone jobs installed from committed constraints and passed all 55 tests on Python 3.11 and 3.14.
 - GitHub Actions run `29051012487` passed all four jobs: fresh-clone MCP and built-wheel packaging on Python 3.11 and 3.14. The jobs allocate dynamic loopback ports, and third-party actions are pinned to audited full commit SHAs.
 - `actionlint 1.7.12` passed the workflow.
