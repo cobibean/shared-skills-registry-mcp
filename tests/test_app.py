@@ -26,7 +26,8 @@ def test_ssr_http_tools_match_private_endpoint_shape(tmp_path):
 
     listed = client.post("/tools/list_shared_skills", json={})
     assert listed.status_code == 200
-    assert listed.json()["skills"][0]["name"] == "demo-research-brief"
+    assert listed.json()["count"] == 14
+    assert "shared-skills-registry-access" in {skill["name"] for skill in listed.json()["skills"]}
 
     searched = client.post("/tools/search_shared_skills", json={"query": "research"})
     assert searched.status_code == 200
@@ -44,4 +45,4 @@ def test_ssr_http_tools_match_private_endpoint_shape(tmp_path):
     assert install.status_code == 200
     payload = install.json()
     assert payload["install_authorized"] is True
-    assert payload["target_category"] == "demo"
+    assert payload["target_category"] == "example"

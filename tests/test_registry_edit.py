@@ -17,6 +17,7 @@ def _client(tmp_path) -> tuple[TestClient, Path]:
     registry.parent.mkdir(parents=True)
     shutil.copy(ROOT / "config" / "shared_skills.yaml", registry)
     shutil.copytree(ROOT / "examples", tmp_path / "examples")
+    shutil.copytree(ROOT / "seed", tmp_path / "seed")
     app = create_app(
         Settings(
             shared_skills_path=str(registry),
@@ -53,14 +54,16 @@ def test_registry_listing_includes_non_active_and_source_flag(tmp_path):
 
     listing = client.get("/registry/skills").json()
     by_name = {s["name"]: s for s in listing["skills"]}
-    assert set(by_name) == {"demo-research-brief", "second-skill", "ghost-skill"}
+    assert len(by_name) == 16
+    assert {"demo-research-brief", "shared-skills-registry-access", "second-skill", "ghost-skill"} <= set(by_name)
     assert by_name["second-skill"]["lifecycle_status"] == "draft"
     assert by_name["second-skill"]["source_exists"] is True
     assert by_name["ghost-skill"]["source_exists"] is False
 
     # draft entries stay hidden from the agent-facing tool surface
     public = client.post("/tools/list_shared_skills", json={}).json()
-    assert [s["name"] for s in public["skills"]] == ["demo-research-brief"]
+    assert public["count"] == 14
+    assert "second-skill" not in {s["name"] for s in public["skills"]}
 
 
 def test_upsert_updates_existing_entry_and_registry_stays_loadable(tmp_path):
@@ -85,7 +88,7 @@ def test_upsert_rejects_invalid_name_and_path_mismatch(tmp_path):
     assert mismatch.status_code == 400
 
     # registry untouched
-    assert [s["name"] for s in load_shared_skills(registry)["skills"]] == ["demo-research-brief"]
+    assert len(load_shared_skills(registry)["skills"]) == 14
 
 
 def test_delete_removes_entry_and_unknown_404s(tmp_path):
@@ -93,9 +96,9 @@ def test_delete_removes_entry_and_unknown_404s(tmp_path):
     client.put("/registry/skills/second-skill", json=_entry())
     deleted = client.delete("/registry/skills/second-skill")
     assert deleted.status_code == 200
-    assert deleted.json()["remaining"] == 1
+    assert deleted.json()["remaining"] == 14
     assert client.delete("/registry/skills/second-skill").status_code == 404
-    assert [s["name"] for s in load_shared_skills(registry)["skills"]] == ["demo-research-brief"]
+    assert len(load_shared_skills(registry)["skills"]) == 14
 
 
 def test_registry_edits_are_audited(tmp_path):

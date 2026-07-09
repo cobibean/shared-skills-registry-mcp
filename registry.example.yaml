@@ -1,16 +1,20 @@
 version: 1
 skills:
-  - name: demo-research-brief
-    title: Demo Research Brief
-    summary: Create a concise research brief from public notes or URLs.
-    category: demo
-    owner: example
-    source: local-example
-    docs_path: examples/skills/demo-research-brief/SKILL.md
-    applicability: Demonstrates registry browsing, MCP retrieval, and local install.
-    lifecycle_status: active
-    install_guidance: Install into a configured local scratch skills directory, then reload your agent skills if needed.
-    tags:
-      - demo
-      - writing
-      - research
+- name: demo-research-brief
+  title: 'Example: Demo Research Brief'
+  summary: Example-only bundle for testing registry browsing, MCP retrieval, checksum verification, and scratch-directory
+    installation.
+  category: example
+  owner: open-ssr
+  source: shared-skills-registry-mcp-example
+  docs_path: examples/skills/demo-research-brief/SKILL.md
+  applicability: Use only as a tutorial or smoke-test bundle for the Open SSR list, search, describe, retrieve, and local-install
+    path.
+  lifecycle_status: active
+  install_guidance: Install only into a configured scratch skills directory; this is an example skill, not a production research
+    methodology.
+  tags:
+  - example
+  - demo
+  - research
+  - smoke-test

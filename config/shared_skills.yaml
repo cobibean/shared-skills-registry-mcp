@@ -1,16 +1,244 @@
 version: 1
 skills:
-  - name: demo-research-brief
-    title: Demo Research Brief
-    summary: Create a concise research brief from public notes or URLs.
-    category: demo
-    owner: example
-    source: local-example
-    docs_path: examples/skills/demo-research-brief/SKILL.md
-    applicability: Demonstrates registry browsing, MCP retrieval, and local install.
-    lifecycle_status: active
-    install_guidance: Install into a configured local scratch skills directory, then reload your agent skills if needed.
-    tags:
-      - demo
-      - writing
-      - research
+- name: demo-research-brief
+  title: 'Example: Demo Research Brief'
+  summary: Example-only bundle for testing registry browsing, MCP retrieval, checksum verification, and scratch-directory
+    installation.
+  category: example
+  owner: open-ssr
+  source: shared-skills-registry-mcp-example
+  docs_path: examples/skills/demo-research-brief/SKILL.md
+  applicability: Use only as a tutorial or smoke-test bundle for the Open SSR list, search, describe, retrieve, and local-install
+    path.
+  lifecycle_status: active
+  install_guidance: Install only into a configured scratch skills directory; this is an example skill, not a production research
+    methodology.
+  tags:
+  - example
+  - demo
+  - research
+  - smoke-test
+- name: shared-skills-registry-access
+  title: Shared Skills Registry Access
+  summary: Runtime-neutral workflow for agents and orchestrators to discover, inspect, retrieve, install, and verify skills
+    from their configured SSR.
+  category: mcp
+  owner: open-ssr
+  source: shared-skills-registry-mcp
+  docs_path: seed/skills/shared-skills-registry-access/SKILL.md
+  applicability: Use when an MCP-compatible consumer agent or orchestrator needs to obtain reusable capabilities from its
+    own Shared Skills Registry without confusing registry retrieval with caller-local installation.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - mcp
+  - ssr
+  - shared-skills
+  - orchestrator
+  - installation
+- name: project-memory
+  title: Project Memory
+  summary: Maintain durable project-local Markdown memory across agent sessions with structured before-work reading and after-work
+    capture.
+  category: project-continuity
+  owner: cobibean
+  source: cobibean/project-memory-skill@498d15752c660ab2c2d7426a2668d03ae2934393
+  docs_path: seed/skills/project-memory/SKILL.md
+  applicability: Useful across Hermes, Claude, Codex, and other coding agents; demonstrates a bundle containing references
+    and templates.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - project-memory
+  - continuity
+  - handoff
+  - coding-agents
+  - templates
+- name: website-copywriting
+  title: Website Copywriting
+  summary: Write, rewrite, or critique conversion-aware website copy using ethical, proof-backed persuasion.
+  category: marketing
+  owner: cobibean
+  source: cobibean/website-copywriting-skill@35b727026d6300740c4760b3f59530c7a5b40ecc
+  docs_path: seed/skills/website-copywriting/SKILL.md
+  applicability: Makes the starter catalog useful beyond engineering and demonstrates a substantial bundle with references
+    and templates.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - copywriting
+  - marketing
+  - websites
+  - landing-pages
+  - templates
+- name: codebase-design
+  title: Codebase Design
+  summary: Use deep-module vocabulary to design maintainable interfaces, seams, and codebase structures.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/codebase-design/SKILL.md
+  applicability: High-quality guidance for designing maintainable modules and interfaces.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - codebase
+  - architecture
+  - modules
+  - interfaces
+  - design
+- name: diagnosing-bugs
+  title: Diagnosing Bugs
+  summary: Run a disciplined diagnosis loop for hard bugs and performance regressions before proposing fixes.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/diagnosing-bugs/SKILL.md
+  applicability: Strong general debugging workflow; includes a script that exercises nontrivial bundle retrieval and review.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - debugging
+  - diagnosis
+  - bugs
+  - performance
+  - scripts
+- name: domain-modeling
+  title: Domain Modeling
+  summary: Build and sharpen a project domain model, terminology, ubiquitous language, and architectural decisions.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/domain-modeling/SKILL.md
+  applicability: Demonstrates persistent project documentation and architectural vocabulary.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - domain-modeling
+  - architecture
+  - terminology
+  - documentation
+- name: prototype
+  title: Prototype
+  summary: Build a throwaway runnable prototype to test state, business logic, or alternative UI designs.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/prototype/SKILL.md
+  applicability: Clear user-invoked workflow that produces runnable prototypes rather than prose alone.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - prototype
+  - spike
+  - ui
+  - business-logic
+  - experiments
+- name: tdd
+  title: Test-Driven Development
+  summary: Build features and fix bugs using a red-green-refactor test-first workflow.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/tdd/SKILL.md
+  applicability: Familiar, broadly useful software-development workflow with linked references.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - tdd
+  - testing
+  - red-green-refactor
+  - integration-tests
+- name: triage
+  title: Triage
+  summary: Move issues and external pull requests through structured categorization, verification, and agent-ready briefing.
+  category: software-development
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/triage/SKILL.md
+  applicability: Good example of a structured, multi-stage operational skill.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - triage
+  - issues
+  - pull-requests
+  - verification
+  - workflow
+- name: handoff
+  title: Handoff
+  summary: Compact current work and context into a document another agent can resume from.
+  category: productivity
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/handoff/SKILL.md
+  applicability: Small, runtime-neutral skill showing that SSR is useful outside large engineering bundles.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - handoff
+  - context
+  - continuity
+  - agents
+  - productivity
+- name: teach
+  title: Teach
+  summary: Teach a user a new skill or concept within the context of the current workspace.
+  category: productivity
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/teach/SKILL.md
+  applicability: Broadly understandable skill with multiple references that makes the starter catalog less code-only.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - teaching
+  - learning
+  - concepts
+  - workspace
+  - productivity
+- name: writing-great-skills
+  title: Writing Great Skills
+  summary: Reference vocabulary and principles for writing predictable, maintainable agent skills.
+  category: skill-authoring
+  owner: mattpocock
+  source: mattpocock/skills@6eeb81b5fcfeeb5bd531dd47ab2f9f2bbea27461
+  docs_path: seed/skills/writing-great-skills/SKILL.md
+  applicability: Especially appropriate for Open SSR users who need to create and maintain publishable skills.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - skills
+  - authoring
+  - predictability
+  - documentation
+  - agents
+- name: systematic-debugging
+  title: Systematic Debugging
+  summary: Investigate bugs, test failures, and unexpected behavior systematically before attempting fixes.
+  category: software-development
+  owner: obra
+  source: obra/superpowers@6fd4507659784c351abbd2bc264c7162cfd386dc
+  docs_path: seed/skills/systematic-debugging/SKILL.md
+  applicability: Rich bundle with references and scripts that exercises retrieval, checksums, previews, and installation.
+  lifecycle_status: active
+  install_guidance: Install through your configured caller-local SSR adapter, then reload or start a fresh agent session and
+    verify the skill is visible in that runtime.
+  tags:
+  - debugging
+  - root-cause
+  - tests
+  - verification
+  - scripts

@@ -15,7 +15,7 @@ This repo now follows the same core shape as the private SSR implementation:
 - Checksum-bearing skill bundle retrieval.
 - Caller-local install adapter that writes only into a configured local skill directory.
 - Narrow SSR activity log recording every tool call and local install result.
-- Tests proving the example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
+- Tests proving every bundled seed and example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
 
 ## Why this exists
 
@@ -47,6 +47,16 @@ The core path is:
 ```text
 publish a skill → discover it over MCP → inspect/retrieve the bundle → install it locally
 ```
+
+## Included starter catalog
+
+The default registry ships with a deliberately curated catalog rather than a dump of one private agent environment:
+
+- **12 public seed skills:** `project-memory`, `website-copywriting`, `codebase-design`, `diagnosing-bugs`, `domain-modeling`, `prototype`, `tdd`, `triage`, `handoff`, `teach`, `writing-great-skills`, and `systematic-debugging`.
+- **One Open SSR companion skill:** `shared-skills-registry-access`, a runtime-neutral workflow for both orchestrators and consumer agents using their own SSR.
+- **One explicit example:** `demo-research-brief`, labeled example-only and intended for smoke tests and tutorials.
+
+The catalog intentionally contains **no default Hermes skills**. Imported bundles come from pinned public repositories and retain source/owner metadata. See [`docs/SEED-CATALOG.md`](docs/SEED-CATALOG.md) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Quickstart
 
@@ -123,19 +133,19 @@ The public schema is intentionally close to the working private SSR schema:
 version: 1
 skills:
   - name: demo-research-brief
-    title: Demo Research Brief
-    summary: Create a concise research brief from public notes or URLs.
-    category: demo
-    owner: example
-    source: local-example
+    title: "Example: Demo Research Brief"
+    summary: Example-only bundle for testing registry browsing, MCP retrieval, checksum verification, and scratch-directory installation.
+    category: example
+    owner: open-ssr
+    source: shared-skills-registry-mcp-example
     docs_path: examples/skills/demo-research-brief/SKILL.md
-    applicability: Demonstrates registry browsing, MCP retrieval, and local install.
+    applicability: Use only as a tutorial or smoke-test bundle.
     lifecycle_status: active
-    install_guidance: Install into a configured local scratch skills directory, then reload your agent skills if needed.
+    install_guidance: Install only into a configured scratch skills directory.
     tags:
+      - example
       - demo
-      - writing
-      - research
+      - smoke-test
 ```
 
 See:
@@ -225,10 +235,11 @@ The registry can return a checked bundle. The local adapter decides whether and 
 
 ```text
 client/                         MCP stdio adapter
-config/shared_skills.yaml        Working example registry
+config/shared_skills.yaml        Starter registry: 12 seeds + companion + example
 docs/assets/                     README UI screenshot/GIF assets
 examples/mcp-client-config/      Copy-pasteable MCP client configs
-examples/skills/                 Public-safe demo skill bundles
+examples/skills/                 Public-safe example skill bundles
+seed/skills/                     Curated public seed and Open SSR companion bundles
 src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
   audit.py                       Narrow JSONL activity log
