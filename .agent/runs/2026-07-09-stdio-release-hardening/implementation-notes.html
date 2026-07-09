@@ -3,13 +3,13 @@
 <style>body{font-family:Inter,system-ui,sans-serif;line-height:1.5;margin:0;background:#0b1020;color:#e7edf7}main{max-width:1100px;margin:0 auto;padding:32px}section{background:#121a31;border:1px solid #263452;border-radius:16px;padding:20px;margin:18px 0}.status{display:inline-block;border-radius:999px;padding:3px 10px;background:#174d36;color:#baf7d3}.event{border-left:3px solid #6aa6ff;padding-left:12px;margin:10px 0}code{background:#0a0f1e;padding:2px 5px;border-radius:5px}</style></head><body><main>
 <h1>Open SSR real MCP stdio release hardening</h1>
 <section id="resume"><h2>Resume Here</h2><ul>
-<li><strong>Status:</strong> <span class="status">[doing]</span></li>
-<li><strong>Current phase:</strong> commit/push, final remote-device run, and GitHub Actions verification.</li>
+<li><strong>Status:</strong> <span class="status">[done]</span></li>
+<li><strong>Current phase:</strong> complete; next release gate is security/limitations documentation and final alpha go/no-go.</li>
 <li><strong>Completed work:</strong> real-protocol pytest, generic MCP smoke, packaged console entry points, wheel-safe catalog/UI assets, constrained CI workflow, clean local Hermes E2E, caller-local root hardening, and source/wheel smoke verification.</li>
-<li><strong>Active work:</strong> publish the implementation commit, clone that exact public commit remotely, run final isolated Hermes E2E, and verify both CI jobs.</li>
-<li><strong>Blockers:</strong> preferred home WSL device was offline; approved low-blast-radius fallback is a disposable Hermes home on the shared fleet host with no service/profile mutation.</li>
-<li><strong>Next exact action:</strong> commit and push the reviewed tree, then use the exact remote commit for CI and remote-device verification.</li>
-<li><strong>Last validation:</strong> <code>53 passed</code>; generic source smoke passed; clean wheel smoke passed with 14 entries, five MCP tools, UI, install, and both audits; clean local Hermes marker passed with eight checksum-matching files.</li>
+<li><strong>Active work:</strong> none for this goal.</li>
+<li><strong>Blockers:</strong> none.</li>
+<li><strong>Next exact action:</strong> begin the remaining Gate 3 threat-model, Known Limitations, vulnerability-reporting, and contribution-guidance block.</li>
+<li><strong>Last validation:</strong> exact public commit <code>4e35d47</code> passed fresh-clone 53-test verification, clean local and separate remote Hermes E2Es, generic source/wheel MCP smokes, and both GitHub Actions jobs in run <code>29049318889</code>.</li>
 <li><strong>Protected paths/user-owned work:</strong> existing Hermes profiles/gateways and private fleet services; disposable test homes only.</li>
 </ul></section>
 <section><h2>Decisions Outside The Spec</h2><ul>
@@ -39,6 +39,7 @@
 {ts:"2026-07-09T20:05:00Z",status:"done",phase:"generic-and-local",actor:"knwldg",summary:"Passed official MCP SDK smoke and isolated local Hermes search/describe/retrieve/install.",evidence:["five tools","caller-local audit"]},
 {ts:"2026-07-09T20:35:00Z",status:"done",phase:"packaging",actor:"knwldg",summary:"Fixed wheel omissions and verified packaged catalog, UI, HTTP, stdio, installation, and audit paths.",evidence:["73 wheel files","14 entries"]},
 {ts:"2026-07-09T20:43:00Z",status:"done",phase:"root-authority",actor:"knwldg",summary:"A real Hermes failure exposed unsafe/missing root configuration; hardened the adapter and examples, cleaned test-created residue, and passed a clean rerun.",evidence:["configured root authoritative","default target absent"]},
-{ts:"2026-07-09T20:49:00Z",status:"doing",phase:"publish-and-remote",actor:"knwldg",summary:"Prepared reviewed implementation for public commit, remote exact-commit E2E, and CI verification.",evidence:["53 passed","actionlint passed"]}
+{ts:"2026-07-09T20:49:00Z",status:"done",phase:"publish",actor:"knwldg",summary:"Published implementation commit 4e35d47; exact public fresh clone passed 53 tests and both GitHub Actions jobs succeeded.",evidence:["CI run 29049318889","fresh clone"]},
+{ts:"2026-07-09T20:56:00Z",status:"done",phase:"remote-and-closeout",actor:"knwldg",summary:"Separate remote Linux Hermes used the packaged stdio entry point through a loopback-only tunnel, installed 11 checksum-matching files under scratch, preserved existing profiles/services, and cleaned up all temporary state.",evidence:["four MCP-only calls","remote cleanup verified"]}
 ];document.getElementById('timeline').innerHTML=progressEvents.map(e=>`<div class="event"><strong>${e.ts}</strong> <code>${e.status}</code> <em>${e.phase}</em><br>${e.summary}${e.evidence?.length?'<br>Evidence: '+e.evidence.join(', '):''}</div>`).join('');</script>
 </main></body></html>
