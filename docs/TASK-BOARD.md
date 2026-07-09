@@ -35,8 +35,9 @@ Owner: MCP agent
 - [x] Expose HTTP `/tools/describe_shared_skill`.
 - [x] Expose HTTP `/tools/retrieve_shared_skill`.
 - [x] Expose HTTP `/tools/install_shared_skill` as authorization/bundle-return path.
-- [x] Add SSR-only MCP stdio adapter at `client/stdio_server.py`.
-- [ ] Add polished MCP client configuration examples.
+- [x] Add packaged SSR-only MCP stdio adapter with a compatibility shim at `client/stdio_server.py`.
+- [x] Add polished MCP client configuration examples.
+- [x] Prove all five tools through real MCP stdio, generic SDK, clean local Hermes, and separate remote Hermes consumers.
 
 ## Lane D — UI
 
@@ -65,13 +66,14 @@ Owner: security/docs/QA agents
 
 - [x] Security boundary doc.
 - [x] Public-safe private MCP extraction reference.
-- [ ] Secret/private-term scan before public release.
+- [x] Secret/private-term scan before public release.
 - [x] Fresh local test smoke: `pytest -q`.
+- [x] Deterministic fresh-clone and built-wheel GitHub Actions verification.
 - [ ] Known limitations section.
 - [ ] Launch post/video outline.
 
 ## Review gates
 
-- [ ] Gate 2: First demo review.
+- [x] Gate 2: First demo review.
 - [ ] Gate 3: Public safety/readiness review.
 - [ ] Gate 4: Release/go-no-go.

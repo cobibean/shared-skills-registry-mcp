@@ -37,13 +37,15 @@ The server may return or authorize checked bundles. Caller-local adapters perfor
 
 ## Current state
 
-Gate status: **Gate 2 is complete.**
+Gate status: **Gate 2 is complete. The real-protocol release-hardening block of Gate 3 is complete.**
 
-Closeout note: cobibean explicitly set Open SSR / Shared Skills Registry MCP as knwldg's top active project until it is shipped and tested in production. Next session should start Gate 3 and should not switch projects unless cobibean interrupts with a higher-priority issue.
+Open SSR / Shared Skills Registry MCP remains knwldg's top active project until it is shipped and production-tested. The next work is the remaining Gate 3 threat model, Known Limitations, vulnerability-reporting, contribution-guidance, and final public-readiness review.
 
-Dated closeout memory: [`docs/memory/2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md`](2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md).
+Latest hardening memory: [`docs/memory/2026-07-09/real-mcp-stdio-release-hardening-memory-2026-07-09.md`](2026-07-09/real-mcp-stdio-release-hardening-memory-2026-07-09.md).
 
-Gate 2 now includes:
+Earlier Gate 2 closeout memory: [`docs/memory/2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md`](2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md).
+
+Current verified state includes:
 
 - faithful backend/MCP SSR extraction;
 - narrow audit/activity log;
@@ -51,42 +53,51 @@ Gate 2 now includes:
 - registry edit routes;
 - negative-path guardrail tests;
 - README UI demo GIF/screenshots;
-- polished MCP client config examples.
+- polished MCP client config examples;
+- curated 14-entry public catalog with 13 canonical production/companion bundles and one explicit example;
+- packaged HTTP and stdio console commands with wheel-safe registry, catalog, example, and UI assets;
+- caller-local installation with configured-root authority and fail-closed override behavior;
+- real MCP, generic SDK, clean local Hermes, separate remote Hermes, fresh-clone, and built-wheel verification.
 
 Current known mainline commits:
 
 ```text
-0a4b8c6 Port working SSR MCP core shape
-1d8d8cb Add narrow SSR audit log and refresh extraction docs
-b924569 Add control panel UI and registry editing
-c562bd4 Add negative-path tests for SSR guardrails
-211e505 Add README UI demo and MCP client examples
+49b12ac Curate public skill catalog
+4e35d47 Harden real MCP stdio release path
+c2b070d Record MCP stdio hardening verification
 ```
 
-Latest verified main at time of this memory: `211e505`.
+Latest verified main before this rolling-memory refresh: `c2b070d`.
 
-Latest verified test result at time of this memory:
+Latest verified test result:
 
 ```text
-34 passed
+53 passed, 1 upstream deprecation warning
 ```
+
+GitHub Actions run `29049841156` passed both the fresh-clone MCP job and built-wheel packaging job.
 
 ## Implemented shape
 
 Public repo shape now matches the working private SSR pattern closely enough to be a real extraction:
 
 ```text
-client/stdio_server.py                MCP stdio adapter
+client/stdio_server.py                compatibility shim
 config/shared_skills.yaml             YAML registry
+skills/                               canonical production/companion bundles
 src/shared_skills_registry_mcp/app.py HTTP tools, audit route, UI serving
+src/shared_skills_registry_mcp/cli.py packaged HTTP entry point
+src/shared_skills_registry_mcp/stdio_server.py packaged MCP stdio adapter
+src/shared_skills_registry_mcp/runtime_paths.py source/wheel asset resolution
 src/shared_skills_registry_mcp/audit.py JSONL activity log
 src/shared_skills_registry_mcp/config.py settings
 src/shared_skills_registry_mcp/registry_edit.py UI/admin registry edits
 src/shared_skills_registry_mcp/shared_skills.py SSR core: registry, bundle, install validation
-ui/index.html                         zero-build control panel
-docs/assets/                          README GIF/screenshots
-examples/mcp-client-config/           MCP client examples
-tests/                                happy path, audit, UI, admin, guardrail tests
+scripts/mcp_stdio_smoke.py             generic protocol smoke client
+ui/index.html                          zero-build control panel
+docs/assets/                           README GIF/screenshots
+examples/mcp-client-config/            MCP client examples
+tests/                                 HTTP, protocol, UI, admin, and guardrail tests
 ```
 
 ## Registry schema
@@ -214,9 +225,9 @@ docs/assets/open-ssr-activity.png
 ```bash
 python -m venv .venv
 . .venv/bin/activate
-pip install -e '.[test]'
+pip install -c requirements/ci-constraints.txt -e '.[test]'
 pytest -q
-uvicorn shared_skills_registry_mcp.app:app --host 127.0.0.1 --port 8765
+shared-skills-registry-http
 ```
 
 Then open:
@@ -236,33 +247,29 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
 
 ## Next gate
 
-Next gate is **Trust, safety, and polish pass**.
+Finish **Gate 3 — Public safety/readiness review**.
+
+Completed in the real-protocol hardening block:
+
+- final changed-file public-safety and secret scans;
+- exact public fresh-clone verification;
+- generic MCP, clean local Hermes, and separate remote Hermes validation;
+- installed-wheel catalog/UI/stdio verification;
+- deterministic GitHub Actions coverage.
 
 Recommended next work:
 
-1. Final public-safety/secret scan across committed source, docs, examples, screenshots, and GIF metadata.
-2. Fresh clone verification from scratch.
-3. Public docs polish pass:
-   - tighten README for first-time users;
-   - make quickstart impossible to misread;
-   - improve MCP client examples if any real client smoke exposes friction;
-   - ensure docs never imply fleet/A2A/private control-plane features.
-4. Security/threat model polish:
-   - explicit file/write boundary;
-   - audit redaction behavior;
-   - local install trust assumptions;
-   - unsupported directory and path traversal rejection.
-5. Launch/demo prep:
-   - short demo script;
-   - screenshot/GIF sanity check on GitHub rendering;
-   - one concise architecture diagram if useful;
-   - tag/release candidate only after fresh clone passes.
+1. Complete the threat model and document trust assumptions for metadata editing, retrieval, local installation, and unauthenticated deployment.
+2. Add a clear Known Limitations section.
+3. Add vulnerability-reporting guidance and contributor documentation.
+4. Perform final screenshot/GIF metadata and GitHub-rendering checks.
+5. Prepare the short launch/demo outline.
+6. Run the Gate 3 go/no-go review before creating an alpha tag.
 
 ## Good stopping point
 
-As of `211e505`, this is a reasonable stopping point for the night:
+As of the current release-hardening closeout:
 
-- Gate 2 is complete.
-- Backend, audit, UI, guardrail tests, README media, and MCP client examples are in place.
-- Tests pass.
-- The next work is polish/verification, not core product rescue.
+- Gate 2 is complete and the protocol/packaging portion of Gate 3 is complete.
+- Real MCP stdio, caller-local installation, source checkout, built wheel, clean local Hermes, separate remote Hermes, and hosted CI all pass.
+- Remaining work is public-readiness documentation and release review, not core product or transport rescue.
