@@ -39,6 +39,10 @@ The server may return or authorize checked bundles. Caller-local adapters perfor
 
 Gate status: **Gate 2 is complete.**
 
+Closeout note: cobibean explicitly set Open SSR / Shared Skills Registry MCP as knwldg's top active project until it is shipped and tested in production. Next session should start Gate 3 and should not switch projects unless cobibean interrupts with a higher-priority issue.
+
+Dated closeout memory: [`docs/memory/2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md`](2026-07-09/open-ssr-gate-2-closeout-memory-2026-07-09.md).
+
 Gate 2 now includes:
 
 - faithful backend/MCP SSR extraction;
