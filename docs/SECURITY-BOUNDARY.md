@@ -15,7 +15,7 @@ Shared Skills Registry MCP is designed as a self-hosted registry and visibility 
 - `SSR_MCP_SKILLS_ROOT` is configured on the stdio adapter running beside the consuming MCP client. The registry service does not receive a remote agent-home path and does not write into remote profiles.
 - The configured root is authoritative. Model- or caller-supplied `skills_root` overrides are rejected by default so a tool call cannot redirect an install to another writable location.
 - A trusted operator can explicitly opt into dynamic local roots with `SSR_MCP_ALLOW_SKILLS_ROOT_OVERRIDE=1`; this broadens the adapter's write authority and should not be enabled for ordinary agent use.
-- Install paths remain category/name descendants of the selected root and are validated along with bundle paths, frontmatter, and SHA-256 checksums before files are committed.
+- Install paths remain category/name descendants of the selected root and are validated along with bundle paths, frontmatter, and SHA-256 checksums before files are committed. The adapter stages a complete validated bundle and swaps it into place as a whole; `overwrite=true` removes files no longer present in the bundle instead of merging stale content forward, and a failed final swap restores the previous installation.
 - Missing root configuration, attempted root override, checksum failure, path escape, and frontmatter mismatch fail closed. Local install success and policy failures are auditable when `SSR_MCP_AUDIT_LOG` is configured.
 
 ## Explicitly out of scope

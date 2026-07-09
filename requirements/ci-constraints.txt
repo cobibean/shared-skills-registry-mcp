@@ -1,4 +1,4 @@
-# CI dependency constraints for Python 3.11 on Linux.
+# CI dependency constraints for Python 3.11 and 3.14 on Linux.
 # Refresh deliberately after running the full stdio and wheel-installed smokes.
 annotated-doc==0.0.4
 annotated-types==0.7.0

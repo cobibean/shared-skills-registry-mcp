@@ -180,11 +180,22 @@ async def test_real_mcp_stdio_protocol_lists_retrieves_and_installs(tmp_path: Pa
                         {"name": "project-memory", "overwrite": True},
                     )
                 )
+                protocol_install_path = Path(installed["installed_path"])
+                stale_file = protocol_install_path / "scripts" / "stale-from-previous-version.py"
+                stale_file.parent.mkdir(parents=True, exist_ok=True)
+                stale_file.write_text("raise RuntimeError('stale')\n", encoding="utf-8")
+                installed = _tool_json(
+                    await session.call_tool(
+                        "install_shared_skill",
+                        {"name": "project-memory", "overwrite": True},
+                    )
+                )
 
         installed_path = Path(installed["installed_path"])
         assert installed_path == install_root / "project-continuity" / "project-memory"
         assert installed["file_count"] == project_bundle["file_count"]
         assert installed["reload_required"] is True
+        assert not (installed_path / "scripts" / "stale-from-previous-version.py").exists()
 
         expected_files = {item["path"]: item for item in project_bundle["files"]}
         assert set(installed["files"]) == set(expected_files)
@@ -195,8 +206,9 @@ async def test_real_mcp_stdio_protocol_lists_retrieves_and_installs(tmp_path: Pa
 
         assert local_audit.is_file()
         local_events = [json.loads(line) for line in local_audit.read_text().splitlines()]
-        assert local_events[-1]["event_type"] == "local_install"
-        assert local_events[-1]["status"] == "ok"
+        assert len(local_events) == 2
+        assert all(event["event_type"] == "local_install" for event in local_events)
+        assert all(event["status"] == "ok" for event in local_events)
 
         assert server_audit.is_file()
         server_events = [json.loads(line) for line in server_audit.read_text().splitlines()]
@@ -207,6 +219,7 @@ async def test_real_mcp_stdio_protocol_lists_retrieves_and_installs(tmp_path: Pa
             "describe_shared_skill",
             "retrieve_shared_skill",
             "retrieve_shared_skill",
+            "install_shared_skill",
             "install_shared_skill",
         ]
 

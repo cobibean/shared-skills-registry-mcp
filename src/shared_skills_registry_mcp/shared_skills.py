@@ -3,7 +3,9 @@ from __future__ import annotations
 import hashlib
 import os
 import re
+import shutil
 import tempfile
+import uuid
 from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
@@ -297,6 +299,13 @@ def _safe_install_rel_path(rel_path: str) -> Path:
     return candidate
 
 
+def _remove_install_path(path: Path) -> None:
+    if path.is_dir() and not path.is_symlink():
+        shutil.rmtree(path)
+    else:
+        path.unlink(missing_ok=True)
+
+
 def install_shared_skill_bundle(
     bundle: dict[str, Any],
     *,
@@ -336,26 +345,65 @@ def install_shared_skill_bundle(
         raise SharedSkillInstallError("install path escapes configured skills directory")
     if install_dir.exists() and not overwrite:
         raise SharedSkillInstallError("skill already installed; pass overwrite=true to replace it")
-    install_dir.mkdir(parents=True, exist_ok=True)
+    install_dir.parent.mkdir(parents=True, exist_ok=True)
+    staging_dir = Path(
+        tempfile.mkdtemp(prefix=f".{skill_name}.staging-", dir=str(install_dir.parent))
+    )
+    backup_dir: Path | None = None
     written: list[str] = []
-    for rel, item in sorted(by_path.items(), key=lambda pair: pair[0]):
-        rel_path = _safe_install_rel_path(rel)
-        target = (install_dir / rel_path).resolve(strict=False)
-        if install_dir not in target.parents and target != install_dir:
-            raise SharedSkillInstallError("target file path escapes install directory")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=str(target.parent))
-        try:
-            with os.fdopen(fd, "w", encoding="utf-8") as fh:
-                fh.write(str(item["content"]))
-            os.replace(tmp_name, target)
-        finally:
+    try:
+        for rel, item in sorted(by_path.items(), key=lambda pair: pair[0]):
+            rel_path = _safe_install_rel_path(rel)
+            target = (staging_dir / rel_path).resolve(strict=False)
+            if staging_dir not in target.parents and target != staging_dir:
+                raise SharedSkillInstallError("target file path escapes install directory")
+            target.parent.mkdir(parents=True, exist_ok=True)
+            fd, tmp_name = tempfile.mkstemp(
+                prefix=f".{target.name}.", suffix=".tmp", dir=str(target.parent)
+            )
             try:
-                if os.path.exists(tmp_name):
-                    os.unlink(tmp_name)
+                with os.fdopen(fd, "w", encoding="utf-8") as fh:
+                    fh.write(str(item["content"]))
+                os.replace(tmp_name, target)
+            finally:
+                try:
+                    if os.path.exists(tmp_name):
+                        os.unlink(tmp_name)
+                except OSError:
+                    pass
+            written.append(rel)
+
+        if install_dir.exists():
+            next_backup = install_dir.parent / f".{skill_name}.backup-{uuid.uuid4().hex}"
+            os.replace(install_dir, next_backup)
+            backup_dir = next_backup
+        try:
+            os.replace(staging_dir, install_dir)
+        except OSError:
+            if backup_dir is not None and backup_dir.exists() and not install_dir.exists():
+                os.replace(backup_dir, install_dir)
+            raise
+        if backup_dir is not None:
+            _remove_install_path(backup_dir)
+            backup_dir = None
+    except SharedSkillInstallError:
+        raise
+    except OSError as exc:
+        if backup_dir is not None and backup_dir.exists() and not install_dir.exists():
+            try:
+                os.replace(backup_dir, install_dir)
+                backup_dir = None
             except OSError:
                 pass
-        written.append(rel)
+        raise SharedSkillInstallError(f"atomic skill replacement failed: {exc}") from exc
+    finally:
+        if staging_dir.exists():
+            shutil.rmtree(staging_dir, ignore_errors=True)
+        if backup_dir is not None and backup_dir.exists() and install_dir.exists():
+            try:
+                _remove_install_path(backup_dir)
+            except OSError:
+                pass
     return {
         "installed": True,
         "skill_name": skill_name,

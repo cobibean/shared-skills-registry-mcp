@@ -18,18 +18,22 @@ env:
 
 jobs:
   fresh-clone:
-    name: Fresh clone · pytest + generic MCP stdio smoke
+    name: Fresh clone · Python ${{ matrix.python-version }} · pytest + generic MCP stdio smoke
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.14"]
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: requirements/ci-constraints.txt
 
@@ -54,7 +58,16 @@ jobs:
           }
           trap cleanup EXIT
 
-          SSR_MCP_AUDIT_LOG="$tmp/server-audit.jsonl" \
+          port="$(python - <<'PY'
+          import socket
+          with socket.socket() as sock:
+              sock.bind(("127.0.0.1", 0))
+              print(sock.getsockname()[1])
+          PY
+          )"
+          smoke_url="http://127.0.0.1:$port"
+          export SSR_SMOKE_URL="$smoke_url"
+          SSR_MCP_PORT="$port" SSR_MCP_AUDIT_LOG="$tmp/server-audit.jsonl" \
             shared-skills-registry-http >"$server_log" 2>&1 &
           server_pid=$!
 
@@ -64,8 +77,9 @@ jobs:
               break
             fi
             if python - <<'PY'
+          import os
           import urllib.request
-          with urllib.request.urlopen("http://127.0.0.1:8765/healthz", timeout=0.5) as response:
+          with urllib.request.urlopen(os.environ["SSR_SMOKE_URL"] + "/healthz", timeout=0.5) as response:
               raise SystemExit(0 if response.status == 200 else 1)
           PY
             then
@@ -82,7 +96,7 @@ jobs:
           fi
 
           python scripts/mcp_stdio_smoke.py \
-            --url http://127.0.0.1:8765 \
+            --url "$smoke_url" \
             --skills-root "$tmp/skills" \
             --audit-log "$tmp/local-audit.jsonl"
 
@@ -91,18 +105,22 @@ jobs:
           test -s "$tmp/local-audit.jsonl"
 
   wheel-install:
-    name: Built wheel · packaged catalog/UI/stdio
+    name: Built wheel · Python ${{ matrix.python-version }} · packaged catalog/UI/stdio
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.14"]
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python-version }}
           cache: pip
           cache-dependency-path: requirements/ci-constraints.txt
 
@@ -139,8 +157,17 @@ jobs:
           }
           trap cleanup EXIT
 
+          port="$("$wheel_python" - <<'PY'
+          import socket
+          with socket.socket() as sock:
+              sock.bind(("127.0.0.1", 0))
+              print(sock.getsockname()[1])
+          PY
+          )"
+          smoke_url="http://127.0.0.1:$port"
+          export SSR_SMOKE_URL="$smoke_url"
           cd /tmp
-          XDG_STATE_HOME="$tmp/state" SSR_MCP_PORT=8766 \
+          XDG_STATE_HOME="$tmp/state" SSR_MCP_PORT="$port" \
             "$wheel_http" >"$server_log" 2>&1 &
           server_pid=$!
 
@@ -150,8 +177,9 @@ jobs:
               break
             fi
             if "$wheel_python" - <<'PY'
+          import os
           import urllib.request
-          with urllib.request.urlopen("http://127.0.0.1:8766/healthz", timeout=0.5) as response:
+          with urllib.request.urlopen(os.environ["SSR_SMOKE_URL"] + "/healthz", timeout=0.5) as response:
               raise SystemExit(0 if response.status == 200 else 1)
           PY
             then
@@ -168,13 +196,14 @@ jobs:
           fi
 
           "$wheel_python" "$GITHUB_WORKSPACE/scripts/mcp_stdio_smoke.py" \
-            --url http://127.0.0.1:8766 \
+            --url "$smoke_url" \
             --skills-root "$tmp/skills" \
             --audit-log "$tmp/local-audit.jsonl"
 
           "$wheel_python" - <<'PY'
+          import os
           import urllib.request
-          with urllib.request.urlopen("http://127.0.0.1:8766/ui", timeout=2) as response:
+          with urllib.request.urlopen(os.environ["SSR_SMOKE_URL"] + "/ui", timeout=2) as response:
               body = response.read().decode("utf-8")
           if response.status != 200 or "Shared Skills Registry" not in body:
               raise SystemExit("packaged UI verification failed")

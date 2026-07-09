@@ -15,7 +15,7 @@ This repo now follows the same core shape as the private SSR implementation:
 - FastAPI `/tools/...` endpoints matching the private SSR tool names.
 - MCP stdio adapter for agent-facing use.
 - Checksum-bearing skill bundle retrieval.
-- Caller-local install adapter that writes only into a configured local skill directory.
+- Caller-local install adapter that writes only into a configured local skill directory and replaces validated bundles as a whole so removed files do not survive updates.
 - Narrow SSR activity log recording every tool call and local install result.
 - Tests proving every bundled seed and example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
 - A real-protocol integration test that launches the HTTP service and stdio adapter as subprocesses, initializes an MCP client session, calls all five tools, and verifies caller-local files and audit records.
@@ -62,6 +62,8 @@ The default registry ships with a deliberately curated catalog rather than a dum
 The catalog intentionally contains **no default Hermes skills**. Imported bundles come from pinned public repositories and retain source/owner metadata. See [`docs/SEED-CATALOG.md`](docs/SEED-CATALOG.md) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Quickstart
+
+Requires Python 3.11–3.14. CI tests the supported floor and ceiling on Linux.
 
 ```bash
 python -m venv .venv

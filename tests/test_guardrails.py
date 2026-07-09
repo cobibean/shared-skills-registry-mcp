@@ -230,6 +230,66 @@ def test_missing_content_or_checksum_rejected(tmp_path):
         assert not skills_root.exists()
 
 
+def test_overwrite_replaces_bundle_and_removes_stale_files(tmp_path):
+    registry, repo = _build_repo(
+        tmp_path,
+        extra_files={"scripts/removed.py": "print('old')\n"},
+    )
+    skills_root = tmp_path / "install-root"
+    first = install_shared_skill_bundle(_bundle(registry, repo), skills_root=skills_root)
+    install_dir = Path(first["installed_path"])
+    assert (install_dir / "scripts" / "removed.py").is_file()
+    assert (install_dir / "templates" / "note.md").is_file()
+
+    source = repo / "skills" / SKILL
+    (source / "scripts" / "removed.py").unlink()
+    (source / "templates" / "note.md").unlink()
+    (source / "references").mkdir()
+    (source / "references" / "current.md").write_text("current\n", encoding="utf-8")
+
+    second = install_shared_skill_bundle(_bundle(registry, repo), skills_root=skills_root, overwrite=True)
+
+    assert second["files"] == ["SKILL.md", "references/current.md"]
+    assert (install_dir / "references" / "current.md").read_text(encoding="utf-8") == "current\n"
+    assert not (install_dir / "scripts" / "removed.py").exists()
+    assert not (install_dir / "templates" / "note.md").exists()
+
+
+def test_atomic_overwrite_restores_previous_bundle_when_swap_fails(tmp_path, monkeypatch):
+    registry, repo = _build_repo(
+        tmp_path,
+        extra_files={"scripts/original.py": "print('original')\n"},
+    )
+    skills_root = tmp_path / "install-root"
+    first = install_shared_skill_bundle(_bundle(registry, repo), skills_root=skills_root)
+    install_dir = Path(first["installed_path"])
+    original_skill = (install_dir / "SKILL.md").read_text(encoding="utf-8")
+
+    source = repo / "skills" / SKILL
+    (source / "scripts" / "original.py").unlink()
+    (source / "references").mkdir()
+    (source / "references" / "replacement.md").write_text("replacement\n", encoding="utf-8")
+    replacement = _bundle(registry, repo)
+
+    real_replace = shared_skills_module.os.replace
+
+    def fail_final_swap(src, dst):
+        if Path(src).name.startswith(f".{SKILL}.staging-") and Path(dst) == install_dir:
+            raise OSError("simulated final directory swap failure")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(shared_skills_module.os, "replace", fail_final_swap)
+
+    with pytest.raises(SharedSkillInstallError, match="atomic skill replacement failed"):
+        install_shared_skill_bundle(replacement, skills_root=skills_root, overwrite=True)
+
+    assert (install_dir / "SKILL.md").read_text(encoding="utf-8") == original_skill
+    assert (install_dir / "scripts" / "original.py").read_text(encoding="utf-8") == "print('original')\n"
+    assert not (install_dir / "references" / "replacement.md").exists()
+    assert not list(install_dir.parent.glob(f".{SKILL}.staging-*"))
+    assert not list(install_dir.parent.glob(f".{SKILL}.backup-*"))
+
+
 # ── 7. admin edit rejection ─────────────────────────────────────────────────
 
 
