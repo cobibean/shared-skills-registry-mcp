@@ -9,10 +9,25 @@ from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
 
+from shared_skills_registry_mcp.audit import AuditLog
 from shared_skills_registry_mcp.shared_skills import SharedSkillInstallError, install_shared_skill_bundle
 
 URL = os.environ.get("SSR_MCP_URL", "http://127.0.0.1:8765").rstrip("/")
 SKILLS_ROOT = os.environ.get("SSR_MCP_SKILLS_ROOT", "")
+AUDIT_LOG_PATH = os.environ.get("SSR_MCP_AUDIT_LOG", "")
+
+
+def _record_install_result(*, skill_name: str, status: str, result_summary: dict[str, Any] | None = None, error_class: str | None = None) -> None:
+    if not AUDIT_LOG_PATH:
+        return
+    AuditLog(AUDIT_LOG_PATH).record_event(
+        event_type="local_install",
+        tool_name="install_shared_skill",
+        arguments={"name": skill_name},
+        result_summary=result_summary,
+        status=status,
+        error_class=error_class,
+    )
 
 mcp = FastMCP("shared-skills-registry")
 
@@ -59,13 +74,16 @@ def install_shared_skill(name: str, target_category: str | None = None, overwrit
     if not destination:
         raise RuntimeError("SSR_MCP_SKILLS_ROOT or skills_root is required for local install")
     try:
-        return install_shared_skill_bundle(
+        result = install_shared_skill_bundle(
             bundle,
             skills_root=Path(destination),
             target_category=target_category or bundle.get("target_category"),
             overwrite=overwrite,
         )
+        _record_install_result(skill_name=name, status="ok", result_summary={"installed_path": result["installed_path"], "file_count": result["file_count"]})
+        return result
     except SharedSkillInstallError as exc:
+        _record_install_result(skill_name=name, status="error", error_class=type(exc).__name__)
         raise RuntimeError(f"Shared Skills Registry install failed safely: {exc}") from exc
 
 

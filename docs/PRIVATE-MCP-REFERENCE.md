@@ -258,24 +258,26 @@ The UI should make these boundaries obvious:
 | Area | Private MCP server | Shared Skills Registry MCP public repo | Decision |
 |---|---|---|---|
 | Product scope | Fleet coordination + A2A + capability hub + SSR | SSR only | Keep public scope narrow. |
-| Runtime | Python service + MCP stdio adapter | Scaffold moving toward same shape | Use Python/MCP shape from the working implementation. |
-| Registry | YAML metadata + skill source tree | Example YAML + demo skill | Align schema with private SSR v1. |
-| Discovery | list/search/describe implemented | Not implemented yet | Port registry core first. |
-| Retrieval | Checked bundle with file hashes | Not implemented yet | Port bundle retrieval behavior. |
-| Install | Server authorizes, local adapter writes | Not implemented yet | Preserve split exactly. |
-| Visibility | Broad private ledger | Docs mention audit | Implement narrow SSR activity log. |
+| Runtime | Python service + MCP stdio adapter | Same shape: FastAPI service + `client/stdio_server.py` | Use Python/MCP shape from the working implementation. |
+| Registry | YAML metadata + skill source tree | Same `version: 1` schema, same required fields, demo skill bundle | Align schema with private SSR v1. |
+| Discovery | list/search/describe implemented | Ported (`shared_skills.py`) with matching behavior and response shape | Keep aligned. |
+| Retrieval | Checked bundle with file hashes | Ported: SHA-256 per file, allowed support dirs, size limits | Keep aligned. |
+| Install | Server authorizes, local adapter writes | Split preserved; destination is an explicit configured `skills_root` instead of a private profile home | Preserve split exactly. |
+| Visibility | Broad private ledger | Narrow SSR activity log: JSONL `audit.py`, redacted arguments, `GET /audit/recent` | Keep narrow; summaries only, never bundle content or secrets. |
 | UI | Private operator/admin visibility | Not built yet | Build SSR-specific UI after backend contracts exist. |
 | Excluded layers | Fleet/A2A/corpus/health/tool hub | Not present | Keep excluded in v1. |
 
-## Recommended implementation order before UI
+## Implementation order before UI
 
-1. Convert `registry.example.yaml` to the private-compatible v1 schema.
-2. Port registry loading/list/search/describe into `packages/registry-core`.
-3. Port bundle retrieval and validation.
-4. Port local install adapter behavior.
-5. Add tests for example skill → list/search/describe/retrieve → install into scratch dir.
-6. Add SSR-only MCP server tools.
-7. Add narrow activity/audit events.
+Steps 1–7 are done in `src/shared_skills_registry_mcp/`; the remaining step is the UI.
+
+1. ~~Convert `registry.example.yaml` to the private-compatible v1 schema.~~ Done.
+2. ~~Port registry loading/list/search/describe.~~ Done (`shared_skills.py`).
+3. ~~Port bundle retrieval and validation.~~ Done.
+4. ~~Port local install adapter behavior.~~ Done (`client/stdio_server.py`).
+5. ~~Add tests for example skill → list/search/describe/retrieve → install into scratch dir.~~ Done.
+6. ~~Add SSR-only MCP server tools.~~ Done.
+7. ~~Add narrow activity/audit events.~~ Done (`audit.py`, `/audit/recent`).
 8. Build UI against those real contracts.
 
 ## Bottom line

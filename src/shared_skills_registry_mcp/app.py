@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
+from .audit import AuditLog
 from .config import Settings, load_settings
 from .shared_skills import (
     SharedSkillNotFound,
@@ -55,6 +56,10 @@ TOOLS = [
 def create_app(settings: Settings | None = None) -> FastAPI:
     settings = settings or load_settings()
     app = FastAPI(title="Shared Skills Registry MCP", version="0.1.0")
+    audit = AuditLog(settings.audit_log_path)
+
+    def _elapsed_ms(started: float) -> int:
+        return int((time.monotonic() - started) * 1000)
 
     @app.get("/healthz")
     def healthz() -> dict[str, Any]:
@@ -64,49 +69,73 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     def tools() -> dict[str, Any]:
         return {"tools": TOOLS}
 
+    @app.get("/audit/recent")
+    def audit_recent(limit: int = 100) -> dict[str, Any]:
+        events = audit.recent(limit=limit)
+        return {"count": len(events), "events": events}
+
     @app.post("/tools/list_shared_skills")
     def list_shared_skills_tool(inp: SharedSkillListIn | None = None) -> dict[str, Any]:
         payload = inp or SharedSkillListIn()
         started = time.monotonic()
         try:
             result = list_shared_skills(settings.shared_skills_path, category=payload.category, limit=payload.limit)
-            result["latency_ms"] = int((time.monotonic() - started) * 1000)
+            audit.record_tool_call(tool_name="list_shared_skills", arguments=payload.model_dump(), result_summary={"count": result["count"]}, status="ok", latency_ms=_elapsed_ms(started))
+            result["latency_ms"] = _elapsed_ms(started)
             return result
         except SharedSkillsConfigError as exc:
+            audit.record_tool_call(tool_name="list_shared_skills", arguments=payload.model_dump(), status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     @app.post("/tools/describe_shared_skill")
     def describe_shared_skill_tool(inp: SharedSkillDescribeIn) -> dict[str, Any]:
+        started = time.monotonic()
         try:
-            return describe_shared_skill(settings.shared_skills_path, inp.name)
+            result = describe_shared_skill(settings.shared_skills_path, inp.name)
+            audit.record_tool_call(tool_name="describe_shared_skill", arguments=inp.model_dump(), result_summary={"skill": result["skill"]["name"]}, status="ok", latency_ms=_elapsed_ms(started))
+            return result
         except SharedSkillNotFound as exc:
+            audit.record_tool_call(tool_name="describe_shared_skill", arguments=inp.model_dump(), status="error", error_class="SharedSkillNotFound", latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=404, detail={"code": "skill_not_found", "message": "unknown shared skill"}) from exc
         except SharedSkillsConfigError as exc:
+            audit.record_tool_call(tool_name="describe_shared_skill", arguments=inp.model_dump(), status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     @app.post("/tools/search_shared_skills")
     def search_shared_skills_tool(inp: SharedSkillSearchIn) -> dict[str, Any]:
+        started = time.monotonic()
         try:
-            return search_shared_skills(settings.shared_skills_path, inp.query, category=inp.category, limit=inp.limit)
+            result = search_shared_skills(settings.shared_skills_path, inp.query, category=inp.category, limit=inp.limit)
+            audit.record_tool_call(tool_name="search_shared_skills", arguments=inp.model_dump(), result_summary={"count": result["count"]}, status="ok", latency_ms=_elapsed_ms(started))
+            return result
         except SharedSkillsConfigError as exc:
+            audit.record_tool_call(tool_name="search_shared_skills", arguments=inp.model_dump(), status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     @app.post("/tools/retrieve_shared_skill")
     def retrieve_shared_skill_tool(inp: SharedSkillRetrieveIn) -> dict[str, Any]:
+        started = time.monotonic()
+        args = {"name": inp.name, "include_bundle": inp.include_bundle}
         try:
-            return retrieve_shared_skill(
+            result = retrieve_shared_skill(
                 settings.shared_skills_path,
                 inp.name,
                 content_roots=list(settings.shared_skill_content_roots),
                 include_bundle=inp.include_bundle,
             )
+            audit.record_tool_call(tool_name="retrieve_shared_skill", arguments=args, result_summary={"skill": result["skill"]["name"], "file_count": result["file_count"], "total_size_bytes": result["total_size_bytes"]}, status="ok", latency_ms=_elapsed_ms(started))
+            return result
         except SharedSkillNotFound as exc:
+            audit.record_tool_call(tool_name="retrieve_shared_skill", arguments=args, status="error", error_class="SharedSkillNotFound", latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=404, detail={"code": "skill_not_found", "message": "unknown shared skill or source unavailable"}) from exc
         except SharedSkillsConfigError as exc:
+            audit.record_tool_call(tool_name="retrieve_shared_skill", arguments=args, status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     @app.post("/tools/install_shared_skill")
     def install_shared_skill_tool(inp: SharedSkillInstallIn) -> dict[str, Any]:
+        started = time.monotonic()
+        args = inp.model_dump()
         try:
             bundle = retrieve_shared_skill(
                 settings.shared_skills_path,
@@ -117,10 +146,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             bundle["install_authorized"] = True
             bundle["target_category"] = inp.target_category or bundle["skill"].get("category")
             bundle["overwrite"] = inp.overwrite
+            audit.record_tool_call(tool_name="install_shared_skill", arguments=args, result_summary={"skill": bundle["skill"]["name"], "file_count": bundle["file_count"], "target_category": bundle["target_category"]}, status="ok", latency_ms=_elapsed_ms(started))
             return bundle
         except SharedSkillNotFound as exc:
+            audit.record_tool_call(tool_name="install_shared_skill", arguments=args, status="error", error_class="SharedSkillNotFound", latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=404, detail={"code": "skill_not_found", "message": "unknown shared skill or source unavailable"}) from exc
         except SharedSkillsConfigError as exc:
+            audit.record_tool_call(tool_name="install_shared_skill", arguments=args, status="error", error_class=type(exc).__name__, latency_ms=_elapsed_ms(started))
             raise HTTPException(status_code=503, detail={"code": "directory_unavailable", "message": str(exc)}) from exc
 
     return app

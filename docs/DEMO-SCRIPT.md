@@ -36,11 +36,12 @@ Show `registry.example.yaml` and the example `demo-research-brief` bundle.
 
 Point out that a registry entry answers the practical questions:
 
-- What is this skill called?
-- What does it do?
-- Where is the bundle?
-- What version/status/risk level is it?
-- Which runtimes can install it?
+- What is this skill called? (`name`, `title`)
+- What does it do? (`summary`, `applicability`, `tags`)
+- Where is the bundle? (`docs_path`)
+- Who owns it and where did it come from? (`owner`, `source`)
+- Is it active? (`lifecycle_status`)
+- What should happen after install? (`install_guidance`)
 
 ## Scene 3 — MCP discovery
 
@@ -81,7 +82,13 @@ Say clearly:
 
 ## Scene 6 — Human visibility
 
-Show the human-facing view or audit output:
+Show the audit trail. Every tool call and local install result is recorded to a JSONL activity log (`SSR_MCP_AUDIT_LOG`, default `data/ssr_audit.jsonl`) and readable via `GET /audit/recent`:
+
+```bash
+curl -s http://127.0.0.1:8765/audit/recent | python3 -m json.tool
+```
+
+Point out what the log shows:
 
 - skill was listed/searched/retrieved;
 - install was attempted;

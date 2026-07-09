@@ -56,7 +56,7 @@ Owner: adapter agent
 - [x] Validate safe relative bundle paths.
 - [x] Write only allowed files/directories.
 - [x] Verify checksum before install.
-- [ ] Record install result in audit log.
+- [x] Record install result in audit log.
 
 ## Lane F — Trust, safety, and launch polish
 

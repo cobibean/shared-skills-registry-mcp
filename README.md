@@ -12,6 +12,7 @@ This repo now follows the same core shape as the private SSR implementation:
 - MCP stdio adapter for agent-facing use.
 - Checksum-bearing skill bundle retrieval.
 - Caller-local install adapter that writes only into a configured local skill directory.
+- Narrow SSR activity log recording every tool call and local install result.
 - Tests proving the example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
 
 ## Why this exists
@@ -36,6 +37,7 @@ The first public slice is intentionally narrow:
 2. **HTTP tools** — exposes `/tools/list_shared_skills`, `/tools/search_shared_skills`, `/tools/describe_shared_skill`, `/tools/retrieve_shared_skill`, and `/tools/install_shared_skill`.
 3. **MCP access** — exposes the same SSR operations to MCP-compatible agents through `client/stdio_server.py`.
 4. **Local install path** — installs only into an explicitly configured local skills root, with path/frontmatter/checksum validation.
+5. **Audit trail** — records every tool call and local install result to a JSONL activity log, readable via `GET /audit/recent`.
 
 The core path is:
 
@@ -156,6 +158,29 @@ Install validation checks:
 - writes are atomic;
 - destination must stay inside the configured local skills root.
 
+## Audit / activity log
+
+Every HTTP tool call is recorded as one JSON line in the audit log, and the stdio adapter records local install results when `SSR_MCP_AUDIT_LOG` is set. Records hold redacted arguments and result summaries (counts, paths, sizes) — never bundle content or secret-like values.
+
+- Default location: `data/ssr_audit.jsonl` (gitignored).
+- Override with `SSR_MCP_AUDIT_LOG=/path/to/audit.jsonl`.
+- Read recent events: `curl -s http://127.0.0.1:8765/audit/recent`.
+
+Event shape:
+
+```json
+{
+  "created_at": "2026-07-08T18:00:00+00:00",
+  "event_type": "tool_call",
+  "tool_name": "retrieve_shared_skill",
+  "arguments": {"name": "demo-research-brief", "include_bundle": true},
+  "result_summary": {"skill": "demo-research-brief", "file_count": 2, "total_size_bytes": 620},
+  "status": "ok",
+  "error_class": null,
+  "latency_ms": 3
+}
+```
+
 ## What this is not
 
 This project is deliberately not a full agent fleet control plane.
@@ -179,6 +204,7 @@ config/shared_skills.yaml        Working example registry
 examples/skills/                 Public-safe demo skill bundles
 src/shared_skills_registry_mcp/  FastAPI app, settings, SSR core
   app.py                         SSR-only HTTP tools
+  audit.py                       Narrow JSONL activity log
   config.py                      Local/private bind-safe settings
   shared_skills.py               Ported registry/retrieve/install logic
 tests/                           SSR core and HTTP endpoint tests

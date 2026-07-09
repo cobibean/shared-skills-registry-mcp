@@ -10,8 +10,14 @@ from shared_skills_registry_mcp.config import Settings
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_ssr_http_tools_match_private_endpoint_shape():
-    app = create_app(Settings(shared_skills_path=str(ROOT / "config" / "shared_skills.yaml"), shared_skill_content_roots=(str(ROOT),)))
+def test_ssr_http_tools_match_private_endpoint_shape(tmp_path):
+    app = create_app(
+        Settings(
+            shared_skills_path=str(ROOT / "config" / "shared_skills.yaml"),
+            shared_skill_content_roots=(str(ROOT),),
+            audit_log_path=str(tmp_path / "ssr_audit.jsonl"),
+        )
+    )
     client = TestClient(app)
 
     health = client.get("/healthz")

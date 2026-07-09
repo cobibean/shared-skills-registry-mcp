@@ -7,6 +7,7 @@ from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
 _DEFAULT_SHARED_SKILLS_PATH = str(_REPO_ROOT / "config" / "shared_skills.yaml")
+_DEFAULT_AUDIT_LOG_PATH = str(_REPO_ROOT / "data" / "ssr_audit.jsonl")
 
 
 @dataclass
@@ -15,6 +16,7 @@ class Settings:
     port: int = 8765
     shared_skills_path: str = _DEFAULT_SHARED_SKILLS_PATH
     shared_skill_content_roots: tuple[str, ...] = field(default_factory=lambda: (str(_REPO_ROOT),))
+    audit_log_path: str = _DEFAULT_AUDIT_LOG_PATH
 
     @property
     def base_url(self) -> str:
@@ -28,6 +30,7 @@ def load_settings() -> Settings:
         port=int(os.environ.get("SSR_MCP_PORT", "8765")),
         shared_skills_path=os.environ.get("SSR_MCP_SHARED_SKILLS", _DEFAULT_SHARED_SKILLS_PATH),
         shared_skill_content_roots=tuple(item.strip() for item in roots_raw.split(",") if item.strip()),
+        audit_log_path=os.environ.get("SSR_MCP_AUDIT_LOG", _DEFAULT_AUDIT_LOG_PATH),
     )
     _validate_private_or_local_bind(settings.bind_host)
     return settings
