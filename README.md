@@ -330,3 +330,4 @@ docs/                            Product, demo, security, and extraction referen
 - [`SECURITY.md`](SECURITY.md) explains private vulnerability reporting and support expectations.
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, real MCP and release-artifact verification, catalog rules, attribution, and pull-request expectations.
 - [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) gates version selection, artifact verification, publication, consumer smoke, and failure handling.
+- [`docs/releases/v0.1.0a1.md`](docs/releases/v0.1.0a1.md) contains the approved first-alpha release notes and security boundary.

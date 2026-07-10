@@ -81,5 +81,5 @@ Owner: security/docs/QA agents
 ## Review gates
 
 - [x] Gate 2: First demo review.
-- [x] Gate 3: Public safety/readiness review — **GO** for public-source readiness; Gate 4 must change the stable-looking `0.1.0` package version to an approved PEP 440 prerelease before tagging.
-- [ ] Gate 4: Release/go-no-go.
+- [x] Gate 3: Public safety/readiness review — **GO** for public-source readiness.
+- [ ] Gate 4: Release/go-no-go — `0.1.0a1` GitHub-only prerelease approved; candidate verification and publication pending.

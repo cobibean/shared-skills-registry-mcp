@@ -16,6 +16,7 @@ RELEASE_DOCS = (
     ROOT / "docs" / "KNOWN-LIMITATIONS.md",
     ROOT / "docs" / "DEMO-SCRIPT.md",
     ROOT / "docs" / "RELEASE-CHECKLIST.md",
+    ROOT / "docs" / "releases" / "v0.1.0a1.md",
     ROOT / "docs" / "TASK-BOARD.md",
 )
 
@@ -32,6 +33,7 @@ def test_release_readiness_documents_exist_and_are_linked_from_readme():
         "docs/KNOWN-LIMITATIONS.md",
         "docs/DEMO-SCRIPT.md",
         "docs/RELEASE-CHECKLIST.md",
+        "docs/releases/v0.1.0a1.md",
     ):
         assert f"]({target})" in readme
     assert "SSR_MCP_PORT=18765 shared-skills-registry-http" in readme
@@ -79,6 +81,7 @@ def test_demo_gif_is_optimized_and_has_expected_readme_dimensions():
 def test_release_metadata_identifies_alpha_and_public_project_surfaces():
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = config["project"]
+    assert project["version"] == "0.1.0a1"
     assert "Development Status :: 3 - Alpha" in project["classifiers"]
     assert project["requires-python"] == ">=3.11,<3.15"
     assert {"Homepage", "Repository", "Documentation", "Issues", "Security"} <= set(project["urls"])
@@ -104,5 +107,5 @@ def test_gate_three_is_go_while_gate_four_stays_blocked_on_prerelease_decision()
     board = (ROOT / "docs" / "TASK-BOARD.md").read_text(encoding="utf-8")
     assert "- [x] Clean first-time-user onboarding replay" in board
     assert "- [x] Gate 3: Public safety/readiness review — **GO**" in board
-    assert "stable-looking `0.1.0` package version" in board
-    assert "- [ ] Gate 4: Release/go-no-go." in board
+    assert "`0.1.0a1` GitHub-only prerelease approved" in board
+    assert "- [ ] Gate 4: Release/go-no-go" in board
