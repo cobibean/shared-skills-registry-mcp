@@ -193,15 +193,30 @@ Design notes:
 README currently includes:
 
 - product promise;
-- quickstart;
+- quickstart and prominent self-hosted-alpha warning;
 - control panel description;
 - MCP usage;
 - registry schema;
 - bundle rules;
 - audit log;
+- summarized Known Limitations;
+- links to the full Threat Model, Known Limitations, Security Policy, Contributor Guide, and launch outline;
 - non-goals;
 - project layout;
-- UI demo GIF near the top.
+- a six-stage real-data UI/MCP demo GIF near the top.
+
+Durable public-readiness docs now include:
+
+```text
+SECURITY.md
+CONTRIBUTING.md
+docs/THREAT-MODEL.md
+docs/KNOWN-LIMITATIONS.md
+docs/SECURITY-BOUNDARY.md
+docs/DEMO-SCRIPT.md
+```
+
+GitHub private vulnerability reporting is enabled for the repository.
 
 MCP config examples currently live at:
 
@@ -249,27 +264,33 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
 
 Finish **Gate 3 — Public safety/readiness review**.
 
-Completed in the real-protocol hardening block:
+Completed in the release-hardening and public-artifact blocks:
 
 - final changed-file public-safety and secret scans;
 - exact public fresh-clone verification;
 - generic MCP, clean local Hermes, and separate remote Hermes validation;
 - installed-wheel catalog/UI/stdio verification;
-- deterministic GitHub Actions coverage.
+- deterministic GitHub Actions coverage;
+- source-grounded Threat Model and Known Limitations;
+- enabled private vulnerability reporting plus `SECURITY.md`;
+- contributor setup, catalog, attribution, and verification guidance;
+- six-stage real-catalog/real-MCP README GIF;
+- truthful launch post and three-minute video outline;
+- third-party notice packaged and verified with imported wheel bundles.
 
 Recommended next work:
 
-1. Complete the threat model and document trust assumptions for metadata editing, retrieval, local installation, and unauthenticated deployment.
-2. Add a clear Known Limitations section.
-3. Add vulnerability-reporting guidance and contributor documentation.
-4. Perform final screenshot/GIF metadata and GitHub-rendering checks.
-5. Prepare the short launch/demo outline.
-6. Run the Gate 3 go/no-go review before creating an alpha tag.
+1. Run first-time-user onboarding dogfood against the exact release candidate.
+2. Run a security-operator comprehension review against Threat Model and Known Limitations.
+3. Resolve package/tag prerelease semantics (`0.1.0` versus a PEP 440 alpha such as `0.1.0a1`).
+4. Decide GitHub-only versus PyPI artifact publication and add sdist/metadata checks if required.
+5. Run the Gate 3 go/no-go review, followed by Gate 4 release/go-no-go before tagging.
 
 ## Good stopping point
 
-As of the current release-hardening closeout:
+As of the Gate 3 artifact closeout:
 
-- Gate 2 is complete and the protocol/packaging portion of Gate 3 is complete.
-- Real MCP stdio, caller-local installation, source checkout, built wheel, clean local Hermes, separate remote Hermes, and hosted CI all pass.
-- Remaining work is public-readiness documentation and release review, not core product or transport rescue.
+- Gate 2 and the protocol/packaging hardening are complete.
+- The six planned public-readiness artifacts are complete and independently reviewed.
+- Gate 3 remains open only for human onboarding/security comprehension and its explicit go/no-go.
+- Gate 4 remains open for version, artifact, tag, and release publication decisions.

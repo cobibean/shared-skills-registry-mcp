@@ -42,3 +42,4 @@ packages = ["src/shared_skills_registry_mcp"]
 "skills" = "shared_skills_registry_mcp/_bundled/skills"
 "examples/skills" = "shared_skills_registry_mcp/_bundled/examples/skills"
 "ui" = "shared_skills_registry_mcp/_bundled/ui"
+"THIRD_PARTY_NOTICES.md" = "shared_skills_registry_mcp/_bundled/THIRD_PARTY_NOTICES.md"

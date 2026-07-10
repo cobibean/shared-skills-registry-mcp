@@ -4,7 +4,7 @@
 
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
-![Open SSR control panel demo](docs/assets/open-ssr-demo.gif)
+![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](docs/assets/open-ssr-demo.gif)
 
 Shared Skills Registry MCP is the public, SSR-only extraction of a working private MCP server. The useful piece is simple: keep reusable agent skills in one registry, let agents discover and retrieve them over MCP, and install them locally with guardrails instead of copy-pasting `SKILL.md` folders around by hand.
 
@@ -40,7 +40,7 @@ The first public slice is intentionally narrow:
 
 1. **Registry** — stores public-safe skill metadata and bundle paths.
 2. **HTTP tools** — exposes `/tools/list_shared_skills`, `/tools/search_shared_skills`, `/tools/describe_shared_skill`, `/tools/retrieve_shared_skill`, and `/tools/install_shared_skill`.
-3. **MCP access** — exposes the same SSR operations to MCP-compatible agents through `client/stdio_server.py`.
+3. **MCP access** — exposes the same SSR operations to MCP-compatible agents through the packaged `shared-skills-registry-stdio` command.
 4. **Local install path** — installs only into an explicitly configured local skills root, with path/frontmatter/checksum validation.
 5. **Audit trail** — records every tool call and local install result to a JSONL activity log, readable via `GET /audit/recent`.
 6. **Control panel** — a zero-build web UI at `/ui` for browsing/searching the registry, inspecting bundles and checksums, watching the activity timeline, and editing registry entries.
@@ -62,6 +62,9 @@ The default registry ships with a deliberately curated catalog rather than a dum
 The catalog intentionally contains **no default Hermes skills**. Imported bundles come from pinned public repositories and retain source/owner metadata. See [`docs/SEED-CATALOG.md`](docs/SEED-CATALOG.md) and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
 
 ## Quickstart
+
+> [!IMPORTANT]
+> Open SSR `0.1.x` is a self-hosted alpha for loopback or controlled private networks. It has no built-in HTTP authentication or TLS and is not safe for direct public Internet exposure. Read the [Known Limitations](docs/KNOWN-LIMITATIONS.md) and [Threat Model](docs/THREAT-MODEL.md) before a cross-machine deployment.
 
 Requires Python 3.11–3.14. CI tests the supported floor and ceiling on Linux.
 
@@ -95,7 +98,7 @@ It gives you:
 - **Activity** — the audit timeline, auto-refreshing, newest first.
 - **Registry editing** — add, edit, deprecate, or delete entries. Edits are validated with the same rules as the registry loader and written atomically to `shared_skills.yaml`. Editing is metadata-only: it points at bundle files already on the server host and never uploads or executes anything.
 
-The editing surface lives on separate `/registry/...` admin routes, not on the agent-facing `/tools/...` surface, and every edit is recorded in the audit log.
+The editing surface lives on separate `/registry/...` admin routes, not on the agent-facing `/tools/...` surface, and every edit is recorded in the audit log. The alpha has no built-in HTTP authentication: keep the service on loopback or put authenticated transport in front of any private-network deployment.
 
 ## MCP usage
 
@@ -257,6 +260,21 @@ Event shape:
 }
 ```
 
+## Known limitations
+
+Open SSR is deliberately a narrow self-hosted alpha:
+
+- no built-in HTTP authentication, authorization, TLS, rate limiting, or multi-tenant isolation;
+- not supported for direct public Internet exposure;
+- SHA-256 checks bundle integrity but does not prove publisher identity or make a skill benign;
+- installation does not execute content, but agents may later follow instructions or run scripts from an installed skill;
+- no package signing, dependency resolution, uninstall/version-history command, or automatic upstream updates;
+- registry edits and installs are atomic but assume one writer at a time;
+- audit JSONL is operational visibility, not signed or tamper-evident forensic evidence;
+- release-gated CI currently targets Linux only.
+
+Read the complete [`docs/KNOWN-LIMITATIONS.md`](docs/KNOWN-LIMITATIONS.md), [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md), and [`SECURITY.md`](SECURITY.md) before deployment. Undisclosed vulnerabilities should be reported through [GitHub private vulnerability reporting](https://github.com/cobibean/shared-skills-registry-mcp/security/advisories/new), not a public issue.
+
 ## What this is not
 
 This project is deliberately not a full agent fleet control plane.
@@ -275,7 +293,7 @@ The registry can return a checked bundle. The local adapter decides whether and 
 ## Current project layout
 
 ```text
-client/                         MCP stdio adapter
+client/                         Compatibility shim for older repo-relative stdio configs
 config/shared_skills.yaml        Starter registry: 12 seeds + companion + example
 docs/assets/                     README UI screenshot/GIF assets
 examples/mcp-client-config/      Copy-pasteable MCP client configs
@@ -296,5 +314,9 @@ docs/                            Product, demo, security, and extraction referen
 ## Reference
 
 - [`docs/PRIVATE-MCP-REFERENCE.md`](docs/PRIVATE-MCP-REFERENCE.md) explains the public-safe architecture extraction from the larger private MCP server.
-- [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) describes the target demo path.
-- [`docs/SECURITY-BOUNDARY.md`](docs/SECURITY-BOUNDARY.md) documents what the registry does and does not do.
+- [`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) contains the truthful launch post, README GIF, and three-minute video outline.
+- [`docs/SECURITY-BOUNDARY.md`](docs/SECURITY-BOUNDARY.md) summarizes what the registry does and does not do.
+- [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) documents assets, actors, boundaries, implemented controls, residual risks, and safe deployment profiles.
+- [`docs/KNOWN-LIMITATIONS.md`](docs/KNOWN-LIMITATIONS.md) lists current alpha constraints without marketing shorthand.
+- [`SECURITY.md`](SECURITY.md) explains private vulnerability reporting and support expectations.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, real MCP and wheel verification, catalog rules, attribution, and pull-request expectations.

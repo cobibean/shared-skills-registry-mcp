@@ -14,7 +14,7 @@ Owner: docs agent
 - [x] Seed README with product promise, MVP boundary, non-goals, and demo journey.
 - [x] Add product promise doc.
 - [x] Rewrite README so it explains what this is, why to use it, and how to run it.
-- [ ] Add first screenshot/GIF placeholder once UI exists.
+- [x] Capture and embed a polished README GIF using the real 14-entry catalog, real bundle checksums, and genuine MCP activity.
 
 ## Lane B — Registry core
 
@@ -69,8 +69,14 @@ Owner: security/docs/QA agents
 - [x] Secret/private-term scan before public release.
 - [x] Fresh local test smoke: `pytest -q`.
 - [x] Deterministic fresh-clone and built-wheel GitHub Actions verification.
-- [ ] Known limitations section.
-- [ ] Launch post/video outline.
+- [x] Full threat model with assets, actors, trust boundaries, controls, residual risks, and safe deployment profiles.
+- [x] Known Limitations section and detailed alpha limitations document.
+- [x] Private vulnerability-reporting guidance with GitHub private reporting enabled.
+- [x] Contributor setup, catalog, security, attribution, test, and pull-request guidance.
+- [x] Launch post and three-minute video/demo outline.
+- [x] Independent source review of security claims and contributor/release workflow.
+- [x] Package and verify `THIRD_PARTY_NOTICES.md` alongside imported wheel bundles.
+- [ ] Human onboarding and security-operator dogfood against the exact release candidate.
 
 ## Review gates
 

@@ -2,6 +2,8 @@
 
 Shared Skills Registry MCP is designed as a self-hosted registry and visibility layer for reusable AI-agent skills.
 
+For the full analysis, see [`THREAT-MODEL.md`](THREAT-MODEL.md), [`KNOWN-LIMITATIONS.md`](KNOWN-LIMITATIONS.md), and [`../SECURITY.md`](../SECURITY.md).
+
 ## Safe default boundary
 
 - The registry can store, list, search, describe, and retrieve skill bundles.

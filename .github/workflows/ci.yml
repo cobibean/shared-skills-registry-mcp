@@ -139,6 +139,13 @@ jobs:
             dist/*.whl
           test -x /tmp/open-ssr-wheel-venv/bin/shared-skills-registry-http
           test -x /tmp/open-ssr-wheel-venv/bin/shared-skills-registry-stdio
+          /tmp/open-ssr-wheel-venv/bin/python - <<'PY'
+          from importlib.resources import files
+          notice = files("shared_skills_registry_mcp").joinpath("_bundled/THIRD_PARTY_NOTICES.md")
+          text = notice.read_text(encoding="utf-8")
+          if "Third-party notices" not in text or "superpowers" not in text:
+              raise SystemExit("packaged third-party notice verification failed")
+          PY
 
       - name: Smoke installed wheel outside the checkout
         shell: bash
