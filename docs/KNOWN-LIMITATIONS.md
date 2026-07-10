@@ -5,7 +5,7 @@ Shared Skills Registry MCP is an early self-hosted alpha. The real MCP, local/re
 ## Deployment and access control
 
 - **No built-in HTTP authentication or authorization.** Any client that can reach the service can list and retrieve bundles, request install payloads, read audits, and create, edit, deprecate, or delete registry metadata. The separate admin route names are not an access-control boundary.
-- **No built-in TLS.** The default loopback deployment is safe from network interception on the host. Cross-machine operators must supply a trusted private network or authenticated TLS proxy.
+- **No built-in TLS.** Loopback prevents off-host clients from reaching the service by default; it does not authenticate same-host clients or protect a host that is already compromised. Cross-machine operators must supply a trusted private network or authenticated TLS proxy.
 - **Not safe for direct public Internet exposure.** The packaged launcher blocks wildcard and public-address literals, but private-network reachability is not user authentication. Direct Uvicorn commands, containers, proxies, tunnels, port forwarding, and firewall configuration can bypass or broaden the launcher boundary.
 - **No multi-user or multi-tenant isolation.** There are no accounts, roles, per-user registries, or per-client audit partitions.
 - **No built-in rate limiting or quotas.** Request and bundle sizes are bounded, but an untrusted reachable client can still consume service and disk resources.

@@ -105,7 +105,7 @@ jobs:
           test -s "$tmp/local-audit.jsonl"
 
   wheel-install:
-    name: Built wheel · Python ${{ matrix.python-version }} · packaged catalog/UI/stdio
+    name: Release artifacts · Python ${{ matrix.python-version }} · wheel/sdist catalog/UI/stdio
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
@@ -124,10 +124,33 @@ jobs:
           cache: pip
           cache-dependency-path: requirements/ci-constraints.txt
 
-      - name: Build wheel without undeclared build state
+      - name: Build sdist and wheel without undeclared build state
         run: |
           python -m pip install -c requirements/ci-constraints.txt build hatchling
-          python -m build --wheel --no-isolation
+          python -m build --sdist --wheel --no-isolation
+          python - <<'PY'
+          from pathlib import Path
+          import tarfile
+          sdist = next(Path("dist").glob("*.tar.gz"))
+          required = {
+              "README.md",
+              "SECURITY.md",
+              "CONTRIBUTING.md",
+              "THIRD_PARTY_NOTICES.md",
+              "docs/THREAT-MODEL.md",
+              "docs/KNOWN-LIMITATIONS.md",
+              "docs/RELEASE-CHECKLIST.md",
+              "pyproject.toml",
+          }
+          with tarfile.open(sdist) as archive:
+              names = archive.getnames()
+          missing = sorted(item for item in required if not any(name.endswith("/" + item) for name in names))
+          leaked = sorted(name for name in names if "/.agent/" in name or "/docs/memory/" in name)
+          if missing:
+              raise SystemExit(f"sdist missing release files: {missing}")
+          if leaked:
+              raise SystemExit(f"sdist contains internal project records: {leaked}")
+          PY
 
       - name: Install wheel into a separate clean environment
         shell: bash
@@ -145,6 +168,28 @@ jobs:
           text = notice.read_text(encoding="utf-8")
           if "Third-party notices" not in text or "superpowers" not in text:
               raise SystemExit("packaged third-party notice verification failed")
+          PY
+
+      - name: Install sdist into a separate clean environment
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m venv /tmp/open-ssr-sdist-venv
+          /tmp/open-ssr-sdist-venv/bin/pip install \
+            -c "$GITHUB_WORKSPACE/requirements/ci-constraints.txt" \
+            hatchling
+          /tmp/open-ssr-sdist-venv/bin/pip install \
+            --no-build-isolation \
+            -c "$GITHUB_WORKSPACE/requirements/ci-constraints.txt" \
+            dist/*.tar.gz
+          test -x /tmp/open-ssr-sdist-venv/bin/shared-skills-registry-http
+          test -x /tmp/open-ssr-sdist-venv/bin/shared-skills-registry-stdio
+          /tmp/open-ssr-sdist-venv/bin/python - <<'PY'
+          from importlib.resources import files
+          notice = files("shared_skills_registry_mcp").joinpath("_bundled/THIRD_PARTY_NOTICES.md")
+          text = notice.read_text(encoding="utf-8")
+          if "Third-party notices" not in text or "superpowers" not in text:
+              raise SystemExit("sdist-installed third-party notice verification failed")
           PY
 
       - name: Smoke installed wheel outside the checkout

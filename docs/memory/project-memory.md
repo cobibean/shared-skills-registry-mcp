@@ -264,35 +264,39 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
 
 ## Next gate
 
-Finish **Gate 3 — Public safety/readiness review**.
+Proceed only after an owner decision to **Gate 4 — Release/go-no-go**.
 
-Completed in the release-hardening and public-artifact blocks:
+Gate 3 is complete and recorded as **GO for public-source readiness**. Completed evidence includes:
 
-- final changed-file public-safety and secret scans;
-- exact public fresh-clone verification;
-- generic MCP, clean local Hermes, and separate remote Hermes validation;
-- installed-wheel catalog/UI/stdio verification;
-- deterministic GitHub Actions coverage;
-- source-grounded Threat Model and Known Limitations;
-- enabled private vulnerability reporting plus `SECURITY.md`;
-- contributor setup, catalog, attribution, and verification guidance;
-- six-stage real-catalog/real-MCP README GIF;
-- truthful launch post and three-minute video outline;
-- third-party notice packaged and verified with imported wheel bundles.
+- clean public-clone onboarding through UI, five-tool MCP, caller-local install, and audit;
+- independent 10/10 security-operator comprehension review;
+- reviewer remediation for audit, loopback, rollback, and write-map language;
+- wheel and sdist build, metadata, clean install, notice/resource, and runtime verification;
+- deterministic GitHub Actions coverage for source plus wheel/sdist on Python 3.11 and 3.14;
+- sdist exclusion of `.agent` and `docs/memory` internal records;
+- alpha classifiers, public project URLs, and package-index-safe README media;
+- durable `docs/RELEASE-CHECKLIST.md`.
 
-Recommended next work:
+Gate 4 blocker:
 
-1. Run first-time-user onboarding dogfood against the exact release candidate.
-2. Run a security-operator comprehension review against Threat Model and Known Limitations.
-3. Resolve package/tag prerelease semantics (`0.1.0` versus a PEP 440 alpha such as `0.1.0a1`).
-4. Decide GitHub-only versus PyPI artifact publication and add sdist/metadata checks if required.
-5. Run the Gate 3 go/no-go review, followed by Gate 4 release/go-no-go before tagging.
+- current package version `0.1.0` is stable-looking while the project is explicitly alpha.
+
+Recommended release identity if approved:
+
+```text
+package version: 0.1.0a1
+tag: v0.1.0a1
+```
+
+Owner decision required:
+
+1. stop after Gate 3;
+2. GitHub prerelease only;
+3. GitHub plus PyPI prerelease.
+
+No tag, GitHub Release, PyPI upload, or release credential configuration has been performed.
 
 ## Good stopping point
 
-As of the Gate 3 artifact closeout:
-
-- Gate 2 and the protocol/packaging hardening are complete.
-- The six planned public-readiness artifacts are complete and independently reviewed.
-- Gate 3 remains open only for human onboarding/security comprehension and its explicit go/no-go.
-- Gate 4 remains open for version, artifact, tag, and release publication decisions.
+- Gates 1–3 are complete.
+- Gate 4 remains open only for the explicit version/publication decision, resulting metadata update, final candidate verification, and approved publication.

@@ -15,6 +15,7 @@ RELEASE_DOCS = (
     ROOT / "docs" / "THREAT-MODEL.md",
     ROOT / "docs" / "KNOWN-LIMITATIONS.md",
     ROOT / "docs" / "DEMO-SCRIPT.md",
+    ROOT / "docs" / "RELEASE-CHECKLIST.md",
     ROOT / "docs" / "TASK-BOARD.md",
 )
 
@@ -30,8 +31,11 @@ def test_release_readiness_documents_exist_and_are_linked_from_readme():
         "docs/THREAT-MODEL.md",
         "docs/KNOWN-LIMITATIONS.md",
         "docs/DEMO-SCRIPT.md",
+        "docs/RELEASE-CHECKLIST.md",
     ):
         assert f"]({target})" in readme
+    assert "SSR_MCP_PORT=18765 shared-skills-registry-http" in readme
+    assert "use it consistently" in readme
 
 
 def test_release_document_local_links_resolve():
@@ -53,6 +57,15 @@ def test_security_policy_uses_private_reporting_and_states_alpha_boundary():
     assert "Do not open a public issue" in policy
     assert "no built-in HTTP authentication" in policy
 
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    limitations = (ROOT / "docs" / "KNOWN-LIMITATIONS.md").read_text(encoding="utf-8")
+    boundary = (ROOT / "docs" / "SECURITY-BOUNDARY.md").read_text(encoding="utf-8")
+    threat_model = (ROOT / "docs" / "THREAT-MODEL.md").read_text(encoding="utf-8")
+    assert "heuristic redaction can miss" in readme
+    assert "does not authenticate same-host clients" in limitations
+    assert "restore the previous installation when possible" in boundary
+    assert "### Write map" in threat_model
+
 
 def test_demo_gif_is_optimized_and_has_expected_readme_dimensions():
     gif = ROOT / "docs" / "assets" / "open-ssr-demo.gif"
@@ -63,6 +76,22 @@ def test_demo_gif_is_optimized_and_has_expected_readme_dimensions():
     assert 100_000 < len(payload) < 3_000_000
 
 
+def test_release_metadata_identifies_alpha_and_public_project_surfaces():
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    project = config["project"]
+    assert "Development Status :: 3 - Alpha" in project["classifiers"]
+    assert project["requires-python"] == ">=3.11,<3.15"
+    assert {"Homepage", "Repository", "Documentation", "Issues", "Security"} <= set(project["urls"])
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    assert "https://raw.githubusercontent.com/cobibean/shared-skills-registry-mcp/main/docs/assets/open-ssr-demo.gif" in readme
+
+
+def test_sdist_excludes_internal_project_records():
+    config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    excluded = set(config["tool"]["hatch"]["build"]["targets"]["sdist"]["exclude"])
+    assert {"/.agent", "/docs/memory"} <= excluded
+
+
 def test_third_party_notice_is_packaged_with_imported_bundles():
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     force_include = config["tool"]["hatch"]["build"]["targets"]["wheel"]["force-include"]
@@ -71,8 +100,9 @@ def test_third_party_notice_is_packaged_with_imported_bundles():
     )
 
 
-def test_gate_three_stays_open_for_human_readiness_review():
+def test_gate_three_is_go_while_gate_four_stays_blocked_on_prerelease_decision():
     board = (ROOT / "docs" / "TASK-BOARD.md").read_text(encoding="utf-8")
-    assert "- [ ] Human onboarding and security-operator dogfood" in board
-    assert "- [ ] Gate 3: Public safety/readiness review." in board
+    assert "- [x] Clean first-time-user onboarding replay" in board
+    assert "- [x] Gate 3: Public safety/readiness review — **GO**" in board
+    assert "stable-looking `0.1.0` package version" in board
     assert "- [ ] Gate 4: Release/go-no-go." in board

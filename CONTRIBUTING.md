@@ -22,7 +22,7 @@ Good contributions include:
 - clearer self-hosting and MCP-client documentation;
 - public-safe skills with documented provenance and licenses;
 - security hardening that keeps writes caller-local;
-- fixes that work in both editable source and built-wheel installations.
+- fixes that work in editable source, built-wheel, and built-sdist installations.
 
 Please discuss large changes before implementing them. Open an issue describing the user problem, boundary changes, and proposed verification. Do not use a public issue for an undisclosed vulnerability.
 
@@ -64,23 +64,30 @@ rm -rf "$tmp"
 
 The smoke must initialize the official MCP client, discover all five tools, call the registry workflow, install beneath the scratch root, and record local audit evidence.
 
-## Build and verify the wheel
+## Build and verify release artifacts
 
-Changes to packaging, runtime paths, UI assets, commands, catalog content, or dependencies require a clean wheel check outside the source checkout:
+Changes to packaging, runtime paths, UI assets, commands, catalog content, or dependencies require clean wheel and sdist checks outside the source checkout:
 
 ```bash
 python -m pip install -c requirements/ci-constraints.txt build hatchling
 rm -rf build dist
-python -m build --wheel --no-isolation
+python -m build --sdist --wheel --no-isolation
 python -m venv /tmp/open-ssr-wheel-check
 /tmp/open-ssr-wheel-check/bin/pip install \
   -c "$PWD/requirements/ci-constraints.txt" \
   dist/*.whl
+python -m venv /tmp/open-ssr-sdist-check
+/tmp/open-ssr-sdist-check/bin/pip install \
+  -c "$PWD/requirements/ci-constraints.txt" hatchling
+/tmp/open-ssr-sdist-check/bin/pip install \
+  --no-build-isolation \
+  -c "$PWD/requirements/ci-constraints.txt" \
+  dist/*.tar.gz
 cd /tmp
 /tmp/open-ssr-wheel-check/bin/shared-skills-registry-http
 ```
 
-Verify the packaged UI, 14-entry catalog, both console commands, generic stdio smoke, caller-local installation, and audit records. Remove the temporary environment afterward.
+Verify both artifacts contain the third-party notice and packaged resources. Exercise the UI, 14-entry catalog, both console commands, generic stdio smoke, caller-local installation, and audit records from at least the wheel environment. Remove both temporary environments afterward.
 
 ## Repository layout
 
@@ -174,13 +181,13 @@ Also run when relevant:
 
 - `tests/test_mcp_stdio_e2e.py` for protocol/adapter changes;
 - `tests/test_guardrails.py` for retrieval/install/security changes;
-- clean built-wheel smoke for package/resource/command changes;
+- clean wheel and sdist checks for package/resource/command changes;
 - generic MCP smoke for client-facing changes;
 - browser and console checks for UI changes;
 - static skill scan and manual content review for catalog changes;
 - `actionlint .github/workflows/ci.yml` for workflow changes.
 
-CI must pass every fresh-clone and built-wheel job on Python 3.11 and 3.14.
+CI must pass every fresh-clone and release-artifact job on Python 3.11 and 3.14.
 
 ## Pull requests
 

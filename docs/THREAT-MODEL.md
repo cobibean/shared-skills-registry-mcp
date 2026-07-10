@@ -21,7 +21,7 @@ Open SSR should:
 5. fail closed when the caller-local destination is absent or a model attempts to redirect it;
 6. avoid placing bundle content or obvious secret-bearing values in the audit log;
 7. avoid accidental wildcard or public-address binding;
-8. preserve the previous installed bundle when a replacement cannot be committed safely.
+8. attempt to preserve the previous installed bundle when a replacement cannot be committed safely.
 
 It does not attempt to prove that a skill is benign, that a publisher is trustworthy, or that a reachable HTTP client is authorized.
 
@@ -89,6 +89,17 @@ skill author / local files
 
 Important boundary: the HTTP service returns a bundle and installation authorization. The stdio adapter beside the consuming client performs the local write. The registry service does not receive a remote agent-home path and does not centrally write into remote profiles.
 
+### Write map
+
+| Surface/process | Writes | Does not write |
+| --- | --- | --- |
+| HTTP registry editor and UI-backed `/registry/...` routes | Server-local registry YAML replacement and server audit JSONL | Bundle files or caller skill roots |
+| HTTP `/tools/...` routes | Server audit JSONL after handled calls, when audit append succeeds | Caller skill roots; the install route returns a validated bundle |
+| Caller-local MCP stdio adapter | Validated bundle beneath `SSR_MCP_SKILLS_ROOT` and optional caller-local audit JSONL | Server registry YAML |
+| Browser UI itself | Browser state only; mutations are requests to the HTTP registry routes | Local filesystem paths directly |
+
+All filesystem writes use the permissions of the process performing them. Route names and separate audit files are not authorization boundaries.
+
 ## Implemented controls
 
 ### Network exposure
@@ -151,7 +162,7 @@ Redaction is defense in depth, not a guarantee that arbitrary sensitive prose ca
 
 - Real MCP subprocess tests cover initialize, discovery, all five tools, installation, audits, and negative paths.
 - Guardrail tests cover path escape, symlinks, malformed frontmatter, oversize bundles, checksum tampering, stale-file removal, and rollback.
-- CI tests fresh source and built-wheel installations on Python 3.11 and 3.14.
+- CI tests fresh source plus built-wheel and built-sdist installations on Python 3.11 and 3.14.
 - GitHub Actions are pinned to full commit SHAs.
 - The bundled public catalog records source commits and third-party notices.
 - Static SkillSpector results for the bundled catalog are documented in [`SEED-CATALOG.md`](SEED-CATALOG.md).

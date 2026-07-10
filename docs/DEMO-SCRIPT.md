@@ -21,7 +21,7 @@ This is the truthful alpha launch story for Shared Skills Registry MCP (Open SSR
 - caller-local adapter with an explicit install root;
 - path, frontmatter, size, and SHA-256 validation;
 - staged whole-bundle replacement that removes stale files;
-- source and wheel tests on Python 3.11 and 3.14;
+- source, wheel, and sdist tests on Python 3.11 and 3.14;
 - verified generic MCP, clean local Hermes, and separate remote Hermes consumers.
 
 ## Claims the launch must not make

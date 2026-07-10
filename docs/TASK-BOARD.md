@@ -68,18 +68,18 @@ Owner: security/docs/QA agents
 - [x] Public-safe private MCP extraction reference.
 - [x] Secret/private-term scan before public release.
 - [x] Fresh local test smoke: `pytest -q`.
-- [x] Deterministic fresh-clone and built-wheel GitHub Actions verification.
+- [x] Deterministic fresh-clone plus built-wheel and built-sdist GitHub Actions verification.
 - [x] Full threat model with assets, actors, trust boundaries, controls, residual risks, and safe deployment profiles.
 - [x] Known Limitations section and detailed alpha limitations document.
 - [x] Private vulnerability-reporting guidance with GitHub private reporting enabled.
 - [x] Contributor setup, catalog, security, attribution, test, and pull-request guidance.
 - [x] Launch post and three-minute video/demo outline.
 - [x] Independent source review of security claims and contributor/release workflow.
-- [x] Package and verify `THIRD_PARTY_NOTICES.md` alongside imported wheel bundles.
-- [ ] Human onboarding and security-operator dogfood against the exact release candidate.
+- [x] Package and verify `THIRD_PARTY_NOTICES.md` alongside imported wheel and sdist bundles.
+- [x] Clean first-time-user onboarding replay plus independent security-operator comprehension dogfood against the candidate.
 
 ## Review gates
 
 - [x] Gate 2: First demo review.
-- [ ] Gate 3: Public safety/readiness review.
+- [x] Gate 3: Public safety/readiness review — **GO** for public-source readiness; Gate 4 must change the stable-looking `0.1.0` package version to an approved PEP 440 prerelease before tagging.
 - [ ] Gate 4: Release/go-no-go.

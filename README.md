@@ -4,7 +4,7 @@
 
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
-![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](docs/assets/open-ssr-demo.gif)
+![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](https://raw.githubusercontent.com/cobibean/shared-skills-registry-mcp/main/docs/assets/open-ssr-demo.gif)
 
 Shared Skills Registry MCP is the public, SSR-only extraction of a working private MCP server. The useful piece is simple: keep reusable agent skills in one registry, let agents discover and retrieve them over MCP, and install them locally with guardrails instead of copy-pasting `SKILL.md` folders around by hand.
 
@@ -86,6 +86,15 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
 ```
 
 Then open the control panel at <http://127.0.0.1:8765/ui>.
+
+If port `8765` is already in use, choose another loopback port and use it consistently in the browser, curl commands, and `SSR_MCP_URL`:
+
+```bash
+SSR_MCP_PORT=18765 shared-skills-registry-http
+curl -s http://127.0.0.1:18765/healthz
+```
+
+The packaged launcher prints the effective URL at startup.
 
 ## Control panel
 
@@ -239,7 +248,7 @@ Install validation checks:
 
 ## Audit / activity log
 
-Every HTTP tool call is recorded as one JSON line in the audit log, and the stdio adapter records local install results when `SSR_MCP_AUDIT_LOG` is set. Records hold redacted arguments and result summaries (counts, paths, sizes) — never bundle content or secret-like values.
+The service attempts to append one JSON audit event after each handled HTTP tool call, and the stdio adapter records local install results when `SSR_MCP_AUDIT_LOG` is set. Malformed requests rejected before a handler and audit-write failures may leave no event. Records omit bundle content and redact common secret-like fields, but heuristic redaction can miss arbitrary sensitive prose.
 
 - Default location: `data/ssr_audit.jsonl` (gitignored).
 - Override with `SSR_MCP_AUDIT_LOG=/path/to/audit.jsonl`.
@@ -319,4 +328,5 @@ docs/                            Product, demo, security, and extraction referen
 - [`docs/THREAT-MODEL.md`](docs/THREAT-MODEL.md) documents assets, actors, boundaries, implemented controls, residual risks, and safe deployment profiles.
 - [`docs/KNOWN-LIMITATIONS.md`](docs/KNOWN-LIMITATIONS.md) lists current alpha constraints without marketing shorthand.
 - [`SECURITY.md`](SECURITY.md) explains private vulnerability reporting and support expectations.
-- [`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, real MCP and wheel verification, catalog rules, attribution, and pull-request expectations.
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, real MCP and release-artifact verification, catalog rules, attribution, and pull-request expectations.
+- [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) gates version selection, artifact verification, publication, consumer smoke, and failure handling.
