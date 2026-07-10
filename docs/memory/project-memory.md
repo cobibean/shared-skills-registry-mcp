@@ -288,7 +288,7 @@ f832436167cba409f5431f12e455eef8b26457876460b63f14bad56ce459ce8c  shared_skills_
 0f995b0608f42256265a670f548b543a32cf0e9e2ea50edd6608d5fb21000f03  shared_skills_registry_mcp-0.1.0a1.tar.gz
 ```
 
-Artifacts were built once from the clean candidate, verified, uploaded unchanged, downloaded publicly, checksum-verified, installed in clean consumer environments, and exercised through UI plus five-tool MCP/install/audit smoke. PyPI was not used.
+Artifacts were built once from the clean candidate, verified, uploaded unchanged, downloaded publicly, checksum-verified, installed in clean consumer environments, and exercised through UI plus five-tool MCP/install/audit smoke. PyPI was not used. Post-release closeout commit `235ea99` passed all four hosted jobs in Actions run `29113861522`.
 
 ## Next gate
 

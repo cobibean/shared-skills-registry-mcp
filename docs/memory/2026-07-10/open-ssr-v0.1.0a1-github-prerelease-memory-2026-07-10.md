@@ -55,6 +55,22 @@ Verification included Twine, archive contents, alpha metadata, no `.agent`/`docs
 - Both resolved notices/resources and commands.
 - Published wheel served the UI and passed the five-tool MCP, 14-entry catalog, caller-local install, and audit smoke.
 
+## Repository closeout
+
+Post-release closeout commit:
+
+```text
+235ea992934b0d47f24165671a252039a6a5022a Record v0.1.0a1 GitHub prerelease
+```
+
+Hosted workflow:
+
+```text
+https://github.com/cobibean/shared-skills-registry-mcp/actions/runs/29113861522
+```
+
+All four Python 3.11/3.14 source and wheel/sdist jobs passed. Release scratch environments, public-download consumer environments, test listeners, and temporary credential helpers were removed.
+
 ## Next work
 
 No immediate release mutation is required. Future alpha changes use a new PEP 440 prerelease version and a new immutable tag; never move `v0.1.0a1` or replace its provenance silently.
