@@ -67,6 +67,22 @@ The contributor review also found that the built wheel contained imported skill 
 - changed-file public-safety scan: no credentials, private paths, private addresses, keys, or JWTs;
 - scratch services and environments: removed.
 
+## Public closeout
+
+Implementation commit:
+
+```text
+dbc1c6bd437bbef2f31b1b823879408bb9499bf3 Complete Gate 3 public readiness artifacts
+```
+
+Hosted workflow:
+
+```text
+https://github.com/cobibean/shared-skills-registry-mcp/actions/runs/29108657727
+```
+
+All four jobs passed: fresh source and built wheel on Python 3.11 and 3.14. Public GitHub rendering was inspected after push: the README GIF loaded at native 800×450, the Important alpha warning rendered, and links to Threat Model, Known Limitations, Security, and Contributing were present.
+
 ## Next gate
 
 1. Run first-time-user onboarding dogfood against the exact release candidate.

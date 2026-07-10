@@ -3,13 +3,13 @@
 <style>body{font-family:Inter,system-ui,sans-serif;line-height:1.5;margin:0;background:#0b1020;color:#e7edf7}main{max-width:1100px;margin:0 auto;padding:32px}section{background:#121a31;border:1px solid #263452;border-radius:16px;padding:20px;margin:18px 0}.status{display:inline-block;border-radius:999px;padding:3px 10px;background:#5b4b16;color:#ffe7a3}.event{border-left:3px solid #6aa6ff;padding-left:12px;margin:10px 0}code{background:#0a0f1e;padding:2px 5px;border-radius:5px}</style></head><body><main>
 <h1>Open SSR Gate 3 Public-Readiness Artifacts</h1>
 <section id="resume"><h2>Resume Here</h2><ul>
-<li><strong>Status:</strong> <span class="status">[doing]</span></li>
-<li><strong>Current phase:</strong> final commit, push, public rendering, and hosted CI.</li>
-<li><strong>Completed work:</strong> all six artifacts; independent security/contributor review remediation; private reporting; real official-SDK MCP GIF; release-doc regression tests; packaged third-party notice.</li>
-<li><strong>Active work:</strong> commit, push, inspect public GitHub rendering, and verify hosted Python 3.11/3.14 source/wheel CI.</li>
+<li><strong>Status:</strong> <span class="status">[done]</span></li>
+<li><strong>Current phase:</strong> complete; Gate 3 remains separately open for human onboarding/security-operator review.</li>
+<li><strong>Completed work:</strong> all six artifacts; independent security/contributor review remediation; private reporting; real official-SDK MCP GIF; release-doc regression tests; packaged third-party notice; public rendering and hosted CI.</li>
+<li><strong>Active work:</strong> none for this artifact goal.</li>
 <li><strong>Blockers:</strong> none.</li>
-<li><strong>Next exact action:</strong> stage the reviewed change set and commit it.</li>
-<li><strong>Last validation:</strong> 61 tests passed; actionlint 1.7.12 passed; wheel notice/resource and clean-wheel UI/MCP/install/audit smoke passed; GIF is 800×450, 31 frames, 16.25 seconds, and 2.27 MB; changed-file safety scan is clean.</li>
+<li><strong>Next exact action:</strong> run the separate human onboarding and security-comprehension gate before release tagging.</li>
+<li><strong>Last validation:</strong> public commit <code>dbc1c6b</code>; workflow <a href="https://github.com/cobibean/shared-skills-registry-mcp/actions/runs/29108657727">29108657727</a> passed all four Python 3.11/3.14 source/wheel jobs; GitHub rendered the 800×450 GIF, warning callout, and all new links correctly.</li>
 <li><strong>Protected paths/user-owned work:</strong> private profiles, credentials, infrastructure details, canonical skill catalog layout.</li>
 </ul></section>
 <section><h2>Decisions Outside The Spec</h2><ul><li>Default visual direction: concise real-workflow GIF with candid alpha posture; no response selected an alternative.</li></ul></section>
@@ -17,5 +17,5 @@
 <section><h2>Validation</h2><ul><li>Full suite: 61 passed, one upstream warning.</li><li>Actionlint 1.7.12: checksum verified and passed.</li><li>Built wheel: 74 files; packaged third-party notice verified.</li><li>Clean wheel outside checkout: UI, official five-tool MCP smoke, caller-local install, and both audits passed.</li><li>GIF: 800×450, 31 frames, 16.25 seconds, 2,265,739 bytes; six-stage contact sheet reviewed.</li><li>UI browser pass: populated registry, search, detail, bundle, activity, and return flow; zero console errors.</li><li>Local Markdown links and changed-file public-safety scan passed.</li></ul></section>
 <section><h2>Evidence</h2><ul><li>Goal: <code>GOAL.md</code></li></ul></section>
 <section><h2>Progress Timeline</h2><div id="timeline"></div></section>
-<script>const progressEvents=[{ts:"2026-07-10T00:00:00Z",status:"doing",phase:"ledger-init",actor:"knwldg",summary:"Started six-artifact Gate 3 public-readiness pass.",evidence:["user-approved scope"]},{ts:"2026-07-10T16:15:00Z",status:"doing",phase:"implementation-complete",actor:"knwldg",summary:"Created all six artifacts, enabled private reporting, replaced the synthetic three-frame GIF with a six-state real-data workflow, and added release-doc regression tests.",evidence:["60 tests staged","GIF under 3 MB","independent review pending"]}];document.getElementById('timeline').innerHTML=progressEvents.map(e=>`<div class="event"><strong>${e.ts}</strong> <code>${e.status}</code> <em>${e.phase}</em><br>${e.summary}${e.evidence?.length?'<br>Evidence: '+e.evidence.join(', '):''}</div>`).join('');</script>
+<script>const progressEvents=[{ts:"2026-07-10T00:00:00Z",status:"doing",phase:"ledger-init",actor:"knwldg",summary:"Started six-artifact Gate 3 public-readiness pass.",evidence:["user-approved scope"]},{ts:"2026-07-10T16:35:00Z",status:"done",phase:"public-closeout",actor:"knwldg",summary:"Pushed the six-artifact release-readiness set, verified all four hosted CI jobs, and inspected the rendered public README/GIF and links.",evidence:["dbc1c6b","Actions 29108657727","GitHub image 800x450"]}];document.getElementById('timeline').innerHTML=progressEvents.map(e=>`<div class="event"><strong>${e.ts}</strong> <code>${e.status}</code> <em>${e.phase}</em><br>${e.summary}${e.evidence?.length?'<br>Evidence: '+e.evidence.join(', '):''}</div>`).join('');</script>
 </main></body></html>

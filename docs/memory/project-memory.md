@@ -218,6 +218,8 @@ docs/DEMO-SCRIPT.md
 
 GitHub private vulnerability reporting is enabled for the repository.
 
+Gate 3 artifact implementation was published at `dbc1c6b`; hosted Actions run `29108657727` passed all Python 3.11/3.14 source and wheel jobs, and the public README/GIF rendering was verified.
+
 MCP config examples currently live at:
 
 ```text
