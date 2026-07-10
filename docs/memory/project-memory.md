@@ -266,7 +266,7 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
 
 Proceed only after an owner decision to **Gate 4 — Release/go-no-go**.
 
-Gate 3 is complete and recorded as **GO for public-source readiness**. Completed evidence includes:
+Gate 3 is complete and recorded as **GO for public-source readiness** at implementation commit `c2fbe0d`. Hosted Actions run `29112472932` passed fresh source plus wheel/sdist release-artifact jobs on Python 3.11 and 3.14; public rendering was verified. Completed evidence includes:
 
 - clean public-clone onboarding through UI, five-tool MCP, caller-local install, and audit;
 - independent 10/10 security-operator comprehension review;
