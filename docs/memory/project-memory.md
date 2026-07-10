@@ -262,41 +262,41 @@ curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
   -d '{}'
 ```
 
-## Next gate
+## Release state
 
-Proceed only after an owner decision to **Gate 4 — Release/go-no-go**.
+Gates 1–4 are complete. Open SSR `v0.1.0a1` is published as a GitHub prerelease only:
 
-Gate 3 is complete and recorded as **GO for public-source readiness** at implementation commit `c2fbe0d`. Hosted Actions run `29112472932` passed fresh source plus wheel/sdist release-artifact jobs on Python 3.11 and 3.14; public rendering was verified. Completed evidence includes:
+```text
+https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1
+```
 
-- clean public-clone onboarding through UI, five-tool MCP, caller-local install, and audit;
-- independent 10/10 security-operator comprehension review;
-- reviewer remediation for audit, loopback, rollback, and write-map language;
-- wheel and sdist build, metadata, clean install, notice/resource, and runtime verification;
-- deterministic GitHub Actions coverage for source plus wheel/sdist on Python 3.11 and 3.14;
-- sdist exclusion of `.agent` and `docs/memory` internal records;
-- alpha classifiers, public project URLs, and package-index-safe README media;
-- durable `docs/RELEASE-CHECKLIST.md`.
-
-Gate 4 blocker:
-
-- current package version `0.1.0` is stable-looking while the project is explicitly alpha.
-
-Recommended release identity if approved:
+Release identity and provenance:
 
 ```text
 package version: 0.1.0a1
-tag: v0.1.0a1
+annotated tag: v0.1.0a1
+candidate commit: 29a3a2286d1e52f3f36964609f2a9688422c3ab7
+tag object: 897a522fbccdbcac571f0d0a85d08ae2db1d0510
+GitHub release ID: 352256620
+candidate CI: 29113193557
 ```
 
-Owner decision required:
+Artifact SHA-256 values:
 
-1. stop after Gate 3;
-2. GitHub prerelease only;
-3. GitHub plus PyPI prerelease.
+```text
+f832436167cba409f5431f12e455eef8b26457876460b63f14bad56ce459ce8c  shared_skills_registry_mcp-0.1.0a1-py3-none-any.whl
+0f995b0608f42256265a670f548b543a32cf0e9e2ea50edd6608d5fb21000f03  shared_skills_registry_mcp-0.1.0a1.tar.gz
+```
 
-No tag, GitHub Release, PyPI upload, or release credential configuration has been performed.
+Artifacts were built once from the clean candidate, verified, uploaded unchanged, downloaded publicly, checksum-verified, installed in clean consumer environments, and exercised through UI plus five-tool MCP/install/audit smoke. PyPI was not used.
+
+## Next gate
+
+No immediate gate is open. Future changes should use a new prerelease version and immutable tag; never move `v0.1.0a1` or silently replace its provenance.
 
 ## Good stopping point
 
-- Gates 1–3 are complete.
-- Gate 4 remains open only for the explicit version/publication decision, resulting metadata update, final candidate verification, and approved publication.
+- Gates 1–4 are complete.
+- GitHub prerelease `v0.1.0a1` is live and consumer-verified.
+- `main` may contain post-tag release-record updates; the tag intentionally remains anchored to candidate `29a3a22`.
+- No PyPI package or PyPI credential was created.

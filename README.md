@@ -2,6 +2,8 @@
 
 [![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
 
+**Latest prerelease:** [`v0.1.0a1`](https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1) — verified GitHub wheel/sdist artifacts; not published to PyPI.
+
 **A self-hosted registry and MCP server for reusable AI-agent skills.**
 
 ![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](https://raw.githubusercontent.com/cobibean/shared-skills-registry-mcp/main/docs/assets/open-ssr-demo.gif)

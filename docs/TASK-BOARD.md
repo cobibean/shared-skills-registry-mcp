@@ -82,4 +82,4 @@ Owner: security/docs/QA agents
 
 - [x] Gate 2: First demo review.
 - [x] Gate 3: Public safety/readiness review — **GO** for public-source readiness.
-- [ ] Gate 4: Release/go-no-go — `0.1.0a1` GitHub-only prerelease approved; candidate verification and publication pending.
+- [x] Gate 4: Release/go-no-go — **GO/PUBLISHED** as GitHub prerelease [`v0.1.0a1`](https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1); no PyPI publication.

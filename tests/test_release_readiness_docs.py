@@ -107,5 +107,6 @@ def test_gate_three_is_go_while_gate_four_stays_blocked_on_prerelease_decision()
     board = (ROOT / "docs" / "TASK-BOARD.md").read_text(encoding="utf-8")
     assert "- [x] Clean first-time-user onboarding replay" in board
     assert "- [x] Gate 3: Public safety/readiness review — **GO**" in board
-    assert "`0.1.0a1` GitHub-only prerelease approved" in board
-    assert "- [ ] Gate 4: Release/go-no-go" in board
+    assert "- [x] Gate 4: Release/go-no-go — **GO/PUBLISHED**" in board
+    assert "releases/tag/v0.1.0a1" in board
+    assert "no PyPI publication" in board
