@@ -292,7 +292,17 @@ Artifacts were built once from the clean candidate, verified, uploaded unchanged
 
 ## Next gate
 
-No immediate gate is open. Future changes should use a new prerelease version and immutable tag; never move `v0.1.0a1` or silently replace its provenance.
+No release gate is open. The next likely work block is launch/content execution:
+
+1. draft platform-specific posts from `docs/DEMO-SCRIPT.md`;
+2. use the existing README GIF immediately or optionally record the scripted three-minute video;
+3. link the repository, release, quickstart, Known Limitations, Threat Model, CONTRIBUTING, and private vulnerability reporting;
+4. ask for feedback on onboarding, trust-boundary clarity, and MCP-client compatibility;
+5. monitor issues and private vulnerability reports after posting.
+
+Detailed restart note: `docs/memory/2026-07-10/open-ssr-launch-handoff-memory-2026-07-10.md`.
+
+Future code changes should use a new prerelease version and immutable tag; never move `v0.1.0a1` or silently replace its provenance.
 
 ## Good stopping point
 
