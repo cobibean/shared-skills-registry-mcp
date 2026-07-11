@@ -5,7 +5,14 @@ Shared Skills Registry MCP has two processes:
 1. **HTTP service** — serves `/tools/...`, `/registry/...`, `/audit/recent`, and `/ui`.
 2. **MCP stdio adapter** — the `shared-skills-registry-stdio` command, which exposes the SSR tools to MCP clients and talks to the HTTP service through `SSR_MCP_URL`. `client/stdio_server.py` remains as a repository-relative compatibility shim.
 
-Start the HTTP service first:
+Start the HTTP service first. If you installed from PyPI with pipx or uv, both commands are already on your `PATH`:
+
+```bash
+pipx install --pip-args=--pre shared-skills-registry-mcp   # or: uv tool install --prerelease=allow shared-skills-registry-mcp
+shared-skills-registry-http
+```
+
+Or from a source checkout:
 
 ```bash
 cd /absolute/path/to/shared-skills-registry-mcp
@@ -15,7 +22,7 @@ pip install -e '.[test]'
 shared-skills-registry-http
 ```
 
-Then configure your MCP client to launch the stdio adapter.
+Then configure your MCP client to launch the stdio adapter. With a pipx/uv install, `command` can simply be `shared-skills-registry-stdio` (or its absolute path from `command -v shared-skills-registry-stdio` for clients that do not inherit your shell `PATH`). With a source checkout, use the venv path shown in the examples below.
 
 ## Environment variables
 
@@ -56,6 +63,23 @@ Tools exposed to the client:
 - `describe_shared_skill`
 - `retrieve_shared_skill`
 - `install_shared_skill`
+
+## Claude Code
+
+Claude Code has a native MCP add command. With the HTTP service running:
+
+```bash
+mkdir -p ~/ssr-skills   # scratch install root; review bundles before pointing at a real skills directory
+claude mcp add shared-skills-registry \
+  --env SSR_MCP_URL=http://127.0.0.1:8765 \
+  --env SSR_MCP_SKILLS_ROOT="$HOME/ssr-skills" \
+  --env SSR_MCP_AUDIT_LOG="$HOME/ssr-skills/.ssr-local-audit.jsonl" \
+  -- shared-skills-registry-stdio
+```
+
+If Claude Code cannot find `shared-skills-registry-stdio`, replace it with the absolute path printed by `command -v shared-skills-registry-stdio` (pipx/uv install) or `/absolute/path/to/shared-skills-registry-mcp/.venv/bin/shared-skills-registry-stdio` (source checkout).
+
+Verify inside a new Claude Code session: run `/mcp`, confirm the five `*_shared_skills` tools are listed, then ask the agent to list shared skills.
 
 ## Hermes Agent
 

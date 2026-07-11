@@ -88,16 +88,26 @@ For PyPI, prefer trusted publishing bound to this repository and release workflo
 
 ## 6. Publish without rebuilding
 
-After explicit approval:
+Publication is automated by the tag-triggered workflow `.github/workflows/release.yml`. On a `v*` tag push it:
 
-1. create the approved annotated tag on the verified candidate commit;
-2. push only that tag;
-3. create a GitHub **prerelease** with the approved release notes;
-4. attach the already-verified wheel, sdist, and checksum file;
-5. if approved, upload those exact artifacts to PyPI;
-6. record release URLs, artifact hashes, workflow run, and publication result in project memory.
+1. verifies the tag matches the `pyproject.toml` version;
+2. builds and verifies the wheel and sdist (twine metadata, sdist content, clean-environment wheel install);
+3. publishes the exact built artifacts to PyPI via OIDC **trusted publishing** (no long-lived tokens), gated by the `pypi` GitHub environment;
+4. creates a GitHub **prerelease** with `docs/releases/v<version>.md` as the notes and attaches the wheel, sdist, and `SHA256SUMS`.
 
-Never run a second build between verification and publication.
+One-time setup before the first automated release (repository owner, on pypi.org):
+
+- add a **pending publisher** for project `shared-skills-registry-mcp` with owner `cobibean`, repository `shared-skills-registry-mcp`, workflow `release.yml`, and environment `pypi`;
+- create the matching `pypi` environment in the GitHub repository settings (optionally with a required reviewer as a manual publish gate).
+
+After explicit Gate 4 approval:
+
+1. confirm `docs/releases/v<version>.md` exists on the candidate commit;
+2. create the approved annotated tag on the verified candidate commit;
+3. push only that tag; the workflow performs steps 1–4 above from a single build;
+4. record release URLs, artifact hashes, workflow run, and publication result in project memory.
+
+The workflow builds once and publishes those exact artifacts to both targets; never re-run a tag build after a partial publication — publish a new prerelease version instead.
 
 ## 7. Verify as a consumer
 

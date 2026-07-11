@@ -2,29 +2,24 @@
 
 [![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
 
-**Latest prerelease:** [`v0.1.0a1`](https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1) — verified GitHub wheel/sdist artifacts; not published to PyPI.
+**Latest prerelease:** [`v0.1.0a1`](https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1) — verified GitHub wheel/sdist artifacts. PyPI publication ships with `v0.1.0a2` via the tag-triggered release workflow.
 
-**A self-hosted registry and MCP server for reusable AI-agent skills.**
+**One self-hosted registry for your AI-agent skills — served to every MCP-capable agent you run.**
 
 ![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](https://raw.githubusercontent.com/cobibean/shared-skills-registry-mcp/main/docs/assets/open-ssr-demo.gif)
 
-Shared Skills Registry MCP is the public, SSR-only extraction of a working private MCP server. The useful piece is simple: keep reusable agent skills in one registry, let agents discover and retrieve them over MCP, and install them locally with guardrails instead of copy-pasting `SKILL.md` folders around by hand.
+Open SSR is a **runtime-neutral** skill registry. Publish a skill bundle (`SKILL.md` plus its references, templates, and scripts) once, and any MCP client — Claude Code, Claude Desktop, Cursor, Windsurf, Hermes, or your own SDK — can discover it, inspect the exact files and SHA-256 checksums, and install it into a local skills directory with guardrails. Every tool call and every install lands in a human-readable audit trail.
 
-This repo now follows the same core shape as the private SSR implementation:
+It is one small Python service you run yourself:
 
-- Python service using the same local runtime shape as the working SSR implementation.
-- YAML-backed `version: 1` skill registry.
-- FastAPI `/tools/...` endpoints matching the private SSR tool names.
-- MCP stdio adapter for agent-facing use.
-- Checksum-bearing skill bundle retrieval.
-- Caller-local install adapter that writes only into a configured local skill directory and replaces validated bundles as a whole so removed files do not survive updates.
-- Narrow SSR activity log recording every tool call and local install result.
-- Tests proving every bundled seed and example skill can be listed, searched, described, retrieved, and installed into a scratch directory.
-- A real-protocol integration test that launches the HTTP service and stdio adapter as subprocesses, initializes an MCP client session, calls all five tools, and verifies caller-local files and audit records.
+- **Runtime-neutral** — skills are served over plain MCP, so they are not siloed inside one vendor's plugin marketplace or a single agent's profile directory.
+- **Self-hosted** — a single `pip install`, no accounts, no hosted service, no lock-in; your skills stay on your machines.
+- **Trust-inspectable** — checksum-bearing bundle retrieval, caller-local installs bounded to an explicitly configured directory, whole-bundle replacement so stale files never survive updates, and a JSONL audit log of every action.
+- **Honestly scoped** — an alpha for loopback or controlled private networks, with a written [threat model](docs/THREAT-MODEL.md) and [known limitations](docs/KNOWN-LIMITATIONS.md) instead of marketing claims.
 
 ## Why this exists
 
-Agent teams are starting to build useful skills, prompts, workflows, and support files. The problem is that they usually live in scattered local folders:
+Agent skills are becoming multi-file capabilities — prompts plus templates, scripts, references, and provenance. But they usually live in scattered local folders:
 
 - one skill copy on a laptop;
 - another inside a Claude Code project;
@@ -34,7 +29,7 @@ Agent teams are starting to build useful skills, prompts, workflows, and support
 
 That gets messy fast. Skills drift, agents miss updates, and humans lose track of what is actually installed where.
 
-Shared Skills Registry MCP gives those skills a home.
+First-party marketplaces solve this for one runtime at a time. Open SSR solves the part they won't: a registry **you** host, that **every** MCP-capable agent can pull from, with an audit trail a human can read. Shared Skills Registry MCP gives those skills a home — the public, SSR-only extraction of a working private MCP server (see [`docs/PRIVATE-MCP-REFERENCE.md`](docs/PRIVATE-MCP-REFERENCE.md)).
 
 ## What it does
 
@@ -70,7 +65,35 @@ The catalog intentionally contains **no default Hermes skills**. Imported bundle
 
 Requires Python 3.11–3.14. CI tests the supported floor and ceiling on Linux.
 
+### Install and run (60 seconds)
+
+From PyPI (prerelease, so pass the prerelease flag):
+
 ```bash
+# pipx
+pipx install --pip-args=--pre shared-skills-registry-mcp
+
+# or uv
+uv tool install --prerelease=allow shared-skills-registry-mcp
+
+# or plain pip in a venv
+pip install --pre shared-skills-registry-mcp
+```
+
+Then start the service — the wheel bundles the full 14-entry starter catalog and UI, so no checkout is needed:
+
+```bash
+shared-skills-registry-http
+```
+
+> [!NOTE]
+> If the package is not yet visible on PyPI (the `v0.1.0a2` prerelease is published by the tag-triggered release workflow), use the from-source path below.
+
+Or from source:
+
+```bash
+git clone https://github.com/cobibean/shared-skills-registry-mcp
+cd shared-skills-registry-mcp
 python -m venv .venv
 . .venv/bin/activate
 pip install -e '.[test]'
@@ -97,6 +120,20 @@ curl -s http://127.0.0.1:18765/healthz
 ```
 
 The packaged launcher prints the effective URL at startup.
+
+### Connect an MCP client
+
+With the HTTP service running, point your agent at the packaged stdio adapter. For Claude Code:
+
+```bash
+mkdir -p ~/ssr-skills   # start with a scratch install root; review bundles before pointing at a real one
+claude mcp add shared-skills-registry \
+  --env SSR_MCP_URL=http://127.0.0.1:8765 \
+  --env SSR_MCP_SKILLS_ROOT="$HOME/ssr-skills" \
+  -- shared-skills-registry-stdio
+```
+
+For Claude Desktop, Cursor, Windsurf, Hermes, or a generic MCP SDK, see [`docs/MCP-CLIENT-CONFIG.md`](docs/MCP-CLIENT-CONFIG.md) for copy-pasteable configs. All five tools (`list`, `search`, `describe`, `retrieve`, `install`) work the same over every client.
 
 ## Control panel
 
@@ -333,3 +370,5 @@ docs/                            Product, demo, security, and extraction referen
 - [`CONTRIBUTING.md`](CONTRIBUTING.md) covers setup, real MCP and release-artifact verification, catalog rules, attribution, and pull-request expectations.
 - [`docs/RELEASE-CHECKLIST.md`](docs/RELEASE-CHECKLIST.md) gates version selection, artifact verification, publication, consumer smoke, and failure handling.
 - [`docs/releases/v0.1.0a1.md`](docs/releases/v0.1.0a1.md) contains the approved first-alpha release notes and security boundary.
+- [`docs/releases/v0.1.0a2.md`](docs/releases/v0.1.0a2.md) contains the second-alpha (first PyPI) release notes.
+- [`docs/LAUNCH-POST.md`](docs/LAUNCH-POST.md) contains the platform-ready launch post drafts and posting sequence.

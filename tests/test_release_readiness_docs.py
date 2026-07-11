@@ -17,6 +17,7 @@ RELEASE_DOCS = (
     ROOT / "docs" / "DEMO-SCRIPT.md",
     ROOT / "docs" / "RELEASE-CHECKLIST.md",
     ROOT / "docs" / "releases" / "v0.1.0a1.md",
+    ROOT / "docs" / "releases" / "v0.1.0a2.md",
     ROOT / "docs" / "TASK-BOARD.md",
 )
 
@@ -34,6 +35,7 @@ def test_release_readiness_documents_exist_and_are_linked_from_readme():
         "docs/DEMO-SCRIPT.md",
         "docs/RELEASE-CHECKLIST.md",
         "docs/releases/v0.1.0a1.md",
+        "docs/releases/v0.1.0a2.md",
     ):
         assert f"]({target})" in readme
     assert "SSR_MCP_PORT=18765 shared-skills-registry-http" in readme
@@ -81,7 +83,7 @@ def test_demo_gif_is_optimized_and_has_expected_readme_dimensions():
 def test_release_metadata_identifies_alpha_and_public_project_surfaces():
     config = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     project = config["project"]
-    assert project["version"] == "0.1.0a1"
+    assert project["version"] == "0.1.0a2"
     assert "Development Status :: 3 - Alpha" in project["classifiers"]
     assert project["requires-python"] == ">=3.11,<3.15"
     assert {"Homepage", "Repository", "Documentation", "Issues", "Security"} <= set(project["urls"])
