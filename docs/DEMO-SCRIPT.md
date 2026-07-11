@@ -19,6 +19,7 @@ This is the truthful alpha launch story for Shared Skills Registry MCP (Open SSR
 - 14-entry public starter catalog with documented sources and notices;
 - five real MCP tools: list, search, describe, retrieve, install;
 - caller-local adapter with an explicit install root;
+- optional shared bearer-token authentication (`SSR_MCP_AUTH_TOKEN`) gating the tool, admin, and audit routes;
 - path, frontmatter, size, and SHA-256 validation;
 - staged whole-bundle replacement that removes stale files;
 - source, wheel, and sdist tests on Python 3.11 and 3.14;
@@ -27,7 +28,7 @@ This is the truthful alpha launch story for Shared Skills Registry MCP (Open SSR
 ## Claims the launch must not make
 
 - safe for direct public Internet exposure;
-- authenticated, multi-tenant, or hosted;
+- user accounts, roles, multi-tenancy, TLS, or a hosted service (the bearer token is one shared secret over plain HTTP);
 - signed packages or verified publisher identity;
 - malware-proof or sandboxed skills;
 - automatic execution, dependency resolution, or fleet deployment;

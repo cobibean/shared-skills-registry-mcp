@@ -19,10 +19,20 @@ class Settings:
     shared_skills_path: str = _DEFAULT_SHARED_SKILLS_PATH
     shared_skill_content_roots: tuple[str, ...] = field(default_factory=lambda: (str(_DEFAULT_CONTENT_ROOT),))
     audit_log_path: str = _DEFAULT_AUDIT_LOG_PATH
+    auth_token: str | None = None
 
     @property
     def base_url(self) -> str:
         return f"http://{self.bind_host}:{self.port}"
+
+    @property
+    def is_loopback_bind(self) -> bool:
+        if self.bind_host == "localhost":
+            return True
+        try:
+            return ipaddress.ip_address(self.bind_host).is_loopback
+        except ValueError:
+            return False
 
 
 def load_settings() -> Settings:
@@ -33,6 +43,7 @@ def load_settings() -> Settings:
         shared_skills_path=os.environ.get("SSR_MCP_SHARED_SKILLS", _DEFAULT_SHARED_SKILLS_PATH),
         shared_skill_content_roots=tuple(item.strip() for item in roots_raw.split(",") if item.strip()),
         audit_log_path=os.environ.get("SSR_MCP_AUDIT_LOG", _DEFAULT_AUDIT_LOG_PATH),
+        auth_token=os.environ.get("SSR_MCP_AUTH_TOKEN", "").strip() or None,
     )
     _validate_private_or_local_bind(settings.bind_host)
     return settings

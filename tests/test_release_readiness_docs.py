@@ -59,7 +59,7 @@ def test_security_policy_uses_private_reporting_and_states_alpha_boundary():
     policy = (ROOT / "SECURITY.md").read_text(encoding="utf-8")
     assert "security/advisories/new" in policy
     assert "Do not open a public issue" in policy
-    assert "no built-in HTTP authentication" in policy
+    assert "optional shared-token HTTP authentication" in policy
 
     readme = (ROOT / "README.md").read_text(encoding="utf-8")
     limitations = (ROOT / "docs" / "KNOWN-LIMITATIONS.md").read_text(encoding="utf-8")

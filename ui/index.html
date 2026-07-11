@@ -286,6 +286,7 @@ label.field .lab .hint { letter-spacing: 0; text-transform: none; opacity: .8; }
     </div>
     <div class="masthead-right">
       <div class="server-status"><span class="dot" id="statusDot"></span><span id="statusText">connecting…</span></div>
+      <button class="btn ghost" id="tokenBtn" title="Set the server bearer token (stored only in this browser)">Token</button>
       <button class="btn accent" id="newBtn">+ New entry</button>
     </div>
   </header>
@@ -320,8 +321,19 @@ const S = {
 const $ = (sel, el) => (el || document).querySelector(sel);
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+/* Auth token lives only in this browser's localStorage, never in URL params. */
+const TOKEN_KEY = "ssr_auth_token";
+function getToken() { try { return localStorage.getItem(TOKEN_KEY) || ""; } catch (e) { return ""; } }
+function setToken(t) { try { if (t) { localStorage.setItem(TOKEN_KEY, t); } else { localStorage.removeItem(TOKEN_KEY); } } catch (e) {} }
+
 async function api(path, opts) {
-  const res = await fetch(path, Object.assign({ headers: { "Content-Type": "application/json" } }, opts));
+  const headers = { "Content-Type": "application/json" };
+  const token = getToken();
+  if (token) headers["Authorization"] = "Bearer " + token;
+  const res = await fetch(path, Object.assign({ headers }, opts));
+  if (res.status === 401) {
+    throw new Error("authentication required — set the server token with the Token button");
+  }
   if (!res.ok) {
     let msg = res.status + " " + res.statusText;
     try { const body = await res.json(); msg = (body.detail && (body.detail.message || body.detail.code)) || msg; } catch (e) {}
@@ -644,6 +656,13 @@ window.addEventListener("hashchange", () => {
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closePanel(); });
 $("#scrim").addEventListener("click", closePanel);
 $("#newBtn").addEventListener("click", () => { closePanel(); S.editing = {}; document.querySelectorAll("nav.tabs a").forEach((a) => a.classList.remove("active")); clearInterval(S.pollTimer); openEditor(null); });
+$("#tokenBtn").addEventListener("click", async () => {
+  const next = window.prompt("Server bearer token (SSR_MCP_AUTH_TOKEN). Stored only in this browser's localStorage; leave blank to clear:", getToken());
+  if (next === null) return;
+  setToken(next.trim());
+  toast(next.trim() ? "Token saved in this browser" : "Token cleared");
+  try { await loadSkills(); S.editing = null; setView(S.view); } catch (e) { toast("Could not load registry: " + e.message, true); }
+});
 
 (async function boot() {
   checkHealth();

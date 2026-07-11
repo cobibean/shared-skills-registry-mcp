@@ -61,7 +61,7 @@ The catalog intentionally contains **no default Hermes skills**. Imported bundle
 ## Quickstart
 
 > [!IMPORTANT]
-> Open SSR `0.1.x` is a self-hosted alpha for loopback or controlled private networks. It has no built-in HTTP authentication or TLS and is not safe for direct public Internet exposure. Read the [Known Limitations](docs/KNOWN-LIMITATIONS.md) and [Threat Model](docs/THREAT-MODEL.md) before a cross-machine deployment.
+> Open SSR `0.1.x` is a self-hosted alpha for loopback or controlled private networks. It has no TLS and only optional shared-token authentication (`SSR_MCP_AUTH_TOKEN`), and it is not safe for direct public Internet exposure. Read the [Known Limitations](docs/KNOWN-LIMITATIONS.md) and [Threat Model](docs/THREAT-MODEL.md) before a cross-machine deployment.
 
 Requires Python 3.11–3.14. CI tests the supported floor and ceiling on Linux.
 
@@ -135,6 +135,15 @@ claude mcp add shared-skills-registry \
 
 For Claude Desktop, Cursor, Windsurf, Hermes, or a generic MCP SDK, see [`docs/MCP-CLIENT-CONFIG.md`](docs/MCP-CLIENT-CONFIG.md) for copy-pasteable configs. All five tools (`list`, `search`, `describe`, `retrieve`, `install`) work the same over every client.
 
+### Optional (recommended for any cross-machine use): require a bearer token
+
+```bash
+shared-skills-registry-generate-token
+# prints: SSR_MCP_AUTH_TOKEN=<random-token>
+```
+
+Set the same `SSR_MCP_AUTH_TOKEN` in the HTTP service environment and in every MCP adapter or client `.env`. With it set, the `/tools/...`, `/registry/...`, and `/audit/...` routes require `Authorization: Bearer <token>`; `/healthz` and the static UI stay open, and the UI's **Token** button stores the token in your browser's localStorage. The token is a single shared secret, not TLS: on an untrusted network it can be intercepted, so the loopback/private-network boundary still applies.
+
 ## Control panel
 
 The UI is a single static file (`ui/index.html`) served by the same FastAPI process — no Node toolchain, no build step, works offline, and respects `prefers-color-scheme` for light/dark.
@@ -146,7 +155,7 @@ It gives you:
 - **Activity** — the audit timeline, auto-refreshing, newest first.
 - **Registry editing** — add, edit, deprecate, or delete entries. Edits are validated with the same rules as the registry loader and written atomically to `shared_skills.yaml`. Editing is metadata-only: it points at bundle files already on the server host and never uploads or executes anything.
 
-The editing surface lives on separate `/registry/...` admin routes, not on the agent-facing `/tools/...` surface, and every edit is recorded in the audit log. The alpha has no built-in HTTP authentication: keep the service on loopback or put authenticated transport in front of any private-network deployment.
+The editing surface lives on separate `/registry/...` admin routes, not on the agent-facing `/tools/...` surface, and every edit is recorded in the audit log. Set `SSR_MCP_AUTH_TOKEN` to require a bearer token on the tool, admin, and audit routes (the UI's **Token** button stores it in this browser only); still keep the service on loopback or behind authenticated transport for any private-network deployment.
 
 ## MCP usage
 
@@ -312,7 +321,7 @@ Event shape:
 
 Open SSR is deliberately a narrow self-hosted alpha:
 
-- no built-in HTTP authentication, authorization, TLS, rate limiting, or multi-tenant isolation;
+- only optional shared-token authentication (`SSR_MCP_AUTH_TOKEN`); no authorization model, TLS, rate limiting, or multi-tenant isolation;
 - not supported for direct public Internet exposure;
 - SHA-256 checks bundle integrity but does not prove publisher identity or make a skill benign;
 - installation does not execute content, but agents may later follow instructions or run scripts from an installed skill;

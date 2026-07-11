@@ -12,6 +12,7 @@ from .audit import AuditLog
 from .shared_skills import SharedSkillInstallError, install_shared_skill_bundle
 
 URL = os.environ.get("SSR_MCP_URL", "http://127.0.0.1:8765").rstrip("/")
+AUTH_TOKEN = os.environ.get("SSR_MCP_AUTH_TOKEN", "").strip()
 SKILLS_ROOT = os.environ.get("SSR_MCP_SKILLS_ROOT", "")
 AUDIT_LOG_PATH = os.environ.get("SSR_MCP_AUDIT_LOG", "")
 ALLOW_SKILLS_ROOT_OVERRIDE = os.environ.get("SSR_MCP_ALLOW_SKILLS_ROOT_OVERRIDE", "").lower() in {
@@ -46,11 +47,14 @@ mcp = FastMCP("shared-skills-registry")
 def post_tool(name: str, payload: dict[str, Any] | None = None) -> Any:
     path = f"/tools/{name}"
     timeout = 180 if name in {"install_shared_skill", "retrieve_shared_skill"} else 65
+    headers = {"Content-Type": "application/json"}
+    if AUTH_TOKEN:
+        headers["Authorization"] = f"Bearer {AUTH_TOKEN}"
     with httpx.Client(timeout=timeout) as client:
         response = client.post(
             f"{URL}{path}",
             content=json.dumps(payload or {}),
-            headers={"Content-Type": "application/json"},
+            headers=headers,
         )
         response.raise_for_status()
         return response.json()

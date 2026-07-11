@@ -29,6 +29,7 @@ Then configure your MCP client to launch the stdio adapter. With a pipx/uv insta
 | Variable | Required? | Purpose |
 |---|---:|---|
 | `SSR_MCP_URL` | no | HTTP service URL. Defaults to `http://127.0.0.1:8765`. |
+| `SSR_MCP_AUTH_TOKEN` | only when the service sets one | Shared bearer token. The adapter sends it as `Authorization: Bearer <token>` on every tool call. Generate with `shared-skills-registry-generate-token`. |
 | `SSR_MCP_SKILLS_ROOT` | yes for install | Local directory where `install_shared_skill` writes skills. |
 | `SSR_MCP_AUDIT_LOG` | no | Optional JSONL log for local install results. |
 | `SSR_MCP_ALLOW_SKILLS_ROOT_OVERRIDE` | no | Unsafe-by-default escape hatch. Set to `1` only when a trusted caller must select a per-call local root; otherwise model-supplied root overrides are rejected. |
@@ -54,6 +55,12 @@ This shape works for clients that accept Claude Desktop/Cursor/Windsurf-style MC
     }
   }
 }
+```
+
+If the HTTP service runs with `SSR_MCP_AUTH_TOKEN` set, add the same value to the `env` block:
+
+```json
+"SSR_MCP_AUTH_TOKEN": "<value from shared-skills-registry-generate-token>"
 ```
 
 Tools exposed to the client:

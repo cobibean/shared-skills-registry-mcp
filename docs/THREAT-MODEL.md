@@ -47,7 +47,7 @@ The operator chooses the bind address, registry file, content roots, audit path,
 
 ### Registry editor
 
-A client able to reach the HTTP service can use the metadata-editing routes. There is currently no built-in user authentication or role model. On the default loopback deployment this is treated as operator-local authority. On any shared private network, reachability alone is **not** sufficient authorization; place an authenticated proxy in front or do not expose the editing service.
+A client able to reach the HTTP service can use the metadata-editing routes unless `SSR_MCP_AUTH_TOKEN` is set, which requires a shared bearer token on those routes. There is no user identity or role model — any token holder has full editing authority. On the default loopback deployment this is treated as operator-local authority. On any shared private network, reachability alone is **not** sufficient authorization; place an authenticated proxy in front or do not expose the editing service.
 
 ### MCP client or agent
 
@@ -59,7 +59,7 @@ Skill content is untrusted input. A skill can contain persuasive instructions or
 
 ### Network attacker
 
-The default design assumes an attacker cannot reach the loopback service. Private-network deployments assume the operator controls network membership or adds transport authentication and encryption. Open SSR itself does not provide TLS or HTTP authentication.
+The default design assumes an attacker cannot reach the loopback service. Private-network deployments assume the operator controls network membership or adds transport authentication and encryption. Open SSR itself does not provide TLS; its HTTP authentication is limited to the optional shared bearer token (`SSR_MCP_AUTH_TOKEN`).
 
 ## Trust boundaries and data flow
 
@@ -109,7 +109,7 @@ All filesystem writes use the permissions of the process performing them. Route 
 - Accepted non-loopback literals are limited to private, link-local IPv6, or Tailscale CGNAT ranges.
 - Arbitrary public IP literals and non-`localhost` hostnames are rejected.
 
-These controls reduce accidental exposure. They do not authenticate clients on an accepted private address.
+These controls reduce accidental exposure. They do not authenticate clients on an accepted private address unless `SSR_MCP_AUTH_TOKEN` is configured — and even then the token is a single shared secret sent over plaintext HTTP.
 
 They are also launcher guardrails, not an unbreakable network policy. An operator can bypass them by invoking Uvicorn directly, or broaden reachability through a container, proxy, tunnel, port forward, or firewall rule. Use `shared-skills-registry-http` for the supported launch path and verify the effective network boundary separately.
 
@@ -171,7 +171,7 @@ Redaction is defense in depth, not a guarantee that arbitrary sensitive prose ca
 
 | Threat | Implemented mitigation | Residual risk / operator action |
 |---|---|---|
-| Unauthorized registry mutation | Loopback default, private-address bind checks in the packaged launcher, schema validation, atomic YAML replacement, audit events | Every reachable client can use admin, tool, and audit routes. There is no authentication, authorization, CSRF protection, or role model. Direct Uvicorn/proxy/tunnel configuration can bypass the launcher bind check. Keep the service local or put authenticated transport and route policy in front of it. |
+| Unauthorized registry mutation | Loopback default, private-address bind checks in the packaged launcher, optional shared bearer token (`SSR_MCP_AUTH_TOKEN`) on tool/admin/audit routes, schema validation, atomic YAML replacement, audit events | Without `SSR_MCP_AUTH_TOKEN`, every reachable client can use admin, tool, and audit routes; with it, any token holder still has full authority and there is no CSRF protection or role model. Direct Uvicorn/proxy/tunnel configuration can bypass the launcher bind check. Keep the service local or put authenticated transport and route policy in front of it. |
 | Installation outside the intended root | Authoritative configured root, conservative names, resolved containment checks, per-call override rejection | Enabling the override escape hatch broadens write authority. The adapter process still has all permissions of its OS user. |
 | Path traversal or symlink escape | Resolved content/install paths, allowed-directory checks, absolute/`..` rejection, tests | Filesystem state can change concurrently. Do not share writable content/install trees with untrusted local users. |
 | Tampered bundle in transit | Adapter recomputes each checksum before writing | Checksums and bundle travel together and are not signed. A malicious or compromised registry server can provide matching malicious content and hashes. Use trusted transport and server ownership. |
@@ -179,8 +179,8 @@ Redaction is defense in depth, not a guarantee that arbitrary sensitive prose ca
 | Malicious skill or prompt injection | Curated catalog, source metadata, static scans, no install-time execution | Open SSR is not a sandbox or semantic malware detector. Review skills before installation and retain normal tool approvals when agents use them. |
 | Stale vulnerable file after update | Whole-directory staged replacement | Concurrent installers are not locked; last successful writer wins. Coordinate updates to one destination. |
 | Registry edit races | Atomic file replacement | There is no optimistic concurrency token or lock. Concurrent edits can overwrite one another. Use one editor at a time or version-control the registry. |
-| Denial of service | Request-field limits, list limits, file/bundle caps, client timeouts | No built-in rate limiting, quotas, authentication, or worker isolation. Do not expose to untrusted networks. Large audit files are read linearly. |
-| Audit disclosure | Redaction, payload omission, record caps | Audit routes have no authentication; logs can contain operational metadata and local install paths; file permissions follow the process environment. Store logs in an access-controlled location. |
+| Denial of service | Request-field limits, list limits, file/bundle caps, client timeouts | No built-in rate limiting, quotas, or worker isolation; even with a bearer token set, rejected requests still consume service resources and append audit records. Do not expose to untrusted networks. Large audit files are read linearly. |
+| Audit disclosure | Redaction, payload omission, record caps | Audit routes require the bearer token only when one is configured; logs can contain operational metadata and local install paths; file permissions follow the process environment. Store logs in an access-controlled location. |
 | Audit tampering, loss, or ambiguous mutation result | Append-only JSONL behavior | No signatures, hash chaining, locking, fsync guarantee, rotation, retention, or external durability. Local install auditing is optional. An audit-write failure can surface after a mutation already succeeded. Forward logs externally if they are compliance evidence and verify state after ambiguous failures. |
 | Network interception | Loopback/private deployment expectation | HTTP is plaintext and has no server/client identity. Use a trusted private network or authenticated TLS reverse proxy across machines. |
 | UI content injection | Dynamic values are escaped before HTML insertion in the bundled UI | Treat future UI changes as security-sensitive and test untrusted metadata. No Content Security Policy is currently provided. |
@@ -206,7 +206,7 @@ Redaction is defense in depth, not a guarantee that arbitrary sensitive prose ca
 
 ### Unsupported: direct public Internet exposure
 
-Do not expose the current alpha directly to the public Internet. It has no built-in authentication, authorization, TLS, rate limiting, or multi-tenant isolation.
+Do not expose the current alpha directly to the public Internet. Its only authentication is the optional shared bearer token; it has no authorization model, TLS, rate limiting, or multi-tenant isolation.
 
 ## Security-sensitive change checklist
 

@@ -56,7 +56,7 @@ Security reports are especially useful for:
 
 Unless it contradicts the documentation or enables an unexpected bypass, these are current alpha limitations rather than undisclosed vulnerabilities:
 
-- no built-in HTTP authentication, authorization, TLS, CSRF protection, rate limiting, or multi-tenant roles;
+- only optional shared-token HTTP authentication (`SSR_MCP_AUTH_TOKEN`, off by default); no authorization model, TLS, CSRF protection, rate limiting, or multi-tenant roles;
 - no direct-public-Internet deployment support;
 - checksums without publisher signatures or a transparency log;
 - no semantic guarantee that an installed skill is benign;

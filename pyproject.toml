@@ -47,6 +47,7 @@ test = [
 [project.scripts]
 shared-skills-registry-http = "shared_skills_registry_mcp.cli:main"
 shared-skills-registry-stdio = "shared_skills_registry_mcp.stdio_server:main"
+shared-skills-registry-generate-token = "shared_skills_registry_mcp.cli:generate_token"
 
 [tool.pytest.ini_options]
 addopts = "-ra"

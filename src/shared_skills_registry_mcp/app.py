@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import hmac
 import time
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel, Field
 
 from .audit import AuditLog
@@ -21,6 +22,14 @@ from .shared_skills import (
 )
 
 _UI_INDEX = default_ui_path()
+
+# Route prefixes that require a bearer token when SSR_MCP_AUTH_TOKEN is set.
+# /healthz, /, and /ui stay open: the UI is static and supplies the token per request.
+AUTH_PROTECTED_PREFIXES = ("/tools", "/registry", "/audit")
+
+
+def _is_protected_path(path: str) -> bool:
+    return any(path == prefix or path.startswith(prefix + "/") for prefix in AUTH_PROTECTED_PREFIXES)
 
 
 class SharedSkillListIn(BaseModel):
@@ -79,6 +88,28 @@ def create_app(settings: Settings | None = None) -> FastAPI:
 
     def _elapsed_ms(started: float) -> int:
         return int((time.monotonic() - started) * 1000)
+
+    if settings.auth_token:
+        expected_header = f"Bearer {settings.auth_token}"
+
+        @app.middleware("http")
+        async def require_bearer_token(request, call_next):
+            if not _is_protected_path(request.url.path):
+                return await call_next(request)
+            supplied = request.headers.get("authorization", "")
+            if not hmac.compare_digest(supplied.encode("utf-8"), expected_header.encode("utf-8")):
+                audit.record_event(
+                    event_type="auth_failure",
+                    arguments={"path": request.url.path, "method": request.method},
+                    status="error",
+                    error_class="MissingAuthToken" if not supplied else "InvalidAuthToken",
+                )
+                return JSONResponse(
+                    status_code=401,
+                    content={"detail": {"code": "invalid_token", "message": "valid bearer token required"}},
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+            return await call_next(request)
 
     @app.get("/", include_in_schema=False)
     def root() -> RedirectResponse:

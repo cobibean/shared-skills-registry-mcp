@@ -31,7 +31,8 @@ Open SSR is one small Python service:
   checksum-bearing bundle, and the adapter beside the consuming agent validates paths, frontmatter,
   and SHA-256s, then installs only beneath an explicitly configured skills root;
 - staged whole-bundle replacement, so stale files don't survive updates;
-- a JSONL audit trail of every tool call and install.
+- a JSONL audit trail of every tool call and install;
+- optional bearer-token auth: one `shared-skills-registry-generate-token` command, set `SSR_MCP_AUTH_TOKEN` on the service and in each agent's `.env`, and the tool/admin/audit routes require it.
 
 Install:
 
@@ -44,9 +45,10 @@ Then connect Claude Code, Claude Desktop, Cursor, Windsurf, Hermes, or a generic
 repo has copy-paste configs for each.
 
 Being upfront about the trust posture: this is an **alpha for loopback or controlled private
-networks**. There is no built-in auth, TLS, or multi-tenancy; checksums prove bundle consistency,
-not publisher identity; installation never executes content, but your agent may later follow what
-it installed — normal tool-approval hygiene still applies. The repo ships a real threat model and
+networks**. Auth is a single optional shared token (no accounts, roles, or TLS — it crosses the
+wire in plaintext); checksums prove bundle consistency, not publisher identity; installation never
+executes content, but your agent may later follow what it installed — normal tool-approval hygiene
+still applies. The repo ships a real threat model and
 a known-limitations doc instead of marketing claims.
 
 I'd especially like feedback on three things:
@@ -75,9 +77,10 @@ Post 1 (hook):
 
 Post 2 (trust boundary, reply):
 
-> Honest scope: it's an alpha for loopback/private networks — no built-in auth or TLS, checksums ≠
-> publisher signatures, installs never execute content. Threat model and known-limitations docs are
-> in the repo, not fine print. Feedback on onboarding + trust clarity very welcome.
+> Honest scope: it's an alpha for loopback/private networks — auth is one optional shared token
+> (no TLS), checksums ≠ publisher signatures, installs never execute content. Threat model and
+> known-limitations docs are in the repo, not fine print. Feedback on onboarding + trust clarity
+> very welcome.
 
 ## Posting sequence
 

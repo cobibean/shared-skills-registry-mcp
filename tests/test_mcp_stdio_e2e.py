@@ -48,12 +48,13 @@ def _tool_json(result: CallToolResult) -> dict:
 
 
 @contextmanager
-def _running_http_service(tmp_path: Path) -> Iterator[tuple[str, Path]]:
+def _running_http_service(tmp_path: Path, auth_token: str | None = None) -> Iterator[tuple[str, Path]]:
     port = _free_port()
     url = f"http://127.0.0.1:{port}"
     audit_path = tmp_path / "server-audit.jsonl"
     log_path = tmp_path / "http-service.log"
     env = os.environ.copy()
+    env.pop("SSR_MCP_AUTH_TOKEN", None)
     env.update(
         {
             "SSR_MCP_AUDIT_LOG": str(audit_path),
@@ -61,6 +62,8 @@ def _running_http_service(tmp_path: Path) -> Iterator[tuple[str, Path]]:
             "SSR_MCP_SHARED_SKILL_CONTENT_ROOTS": str(ROOT),
         }
     )
+    if auth_token:
+        env["SSR_MCP_AUTH_TOKEN"] = auth_token
     with log_path.open("w", encoding="utf-8") as log:
         process = subprocess.Popen(
             [
@@ -310,6 +313,77 @@ async def test_mcp_rejects_per_call_skills_root_override_by_default(tmp_path: Pa
         assert not attempted_override.exists()
         events = [json.loads(line) for line in local_audit.read_text().splitlines()]
         assert events[-1]["error_class"] == "SkillsRootOverrideDisabled"
+
+
+@pytest.mark.asyncio
+async def test_real_mcp_stdio_with_auth_token_enforced_end_to_end(tmp_path: Path) -> None:
+    token = "e2e-test-token-mK7dQx2nRb8sVw4z"
+    with _running_http_service(tmp_path, auth_token=token) as (url, server_audit):
+        assert httpx.get(f"{url}/healthz", timeout=5).status_code == 200
+        unauthenticated = httpx.post(f"{url}/tools/list_shared_skills", json={}, timeout=5)
+        assert unauthenticated.status_code == 401
+        assert unauthenticated.headers["www-authenticate"] == "Bearer"
+
+        install_root = tmp_path / "installed-skills"
+        base_env = {
+            "PYTHONPATH": str(ROOT / "src"),
+            "SSR_MCP_URL": url,
+            "SSR_MCP_SKILLS_ROOT": str(install_root),
+        }
+
+        tokenless_params = StdioServerParameters(
+            command=sys.executable,
+            args=["-m", "shared_skills_registry_mcp.stdio_server"],
+            cwd=ROOT,
+            env=base_env,
+        )
+        async with stdio_client(tokenless_params) as (read_stream, write_stream):
+            async with ClientSession(
+                read_stream,
+                write_stream,
+                read_timeout_seconds=timedelta(seconds=20),
+            ) as session:
+                await session.initialize()
+                denied = await session.call_tool("list_shared_skills", {})
+        assert denied.isError is True
+        denied_text = "\n".join(
+            getattr(block, "text", "")
+            for block in denied.content
+            if getattr(block, "type", None) == "text"
+        )
+        assert "401" in denied_text
+
+        authed_params = StdioServerParameters(
+            command=sys.executable,
+            args=["-m", "shared_skills_registry_mcp.stdio_server"],
+            cwd=ROOT,
+            env={**base_env, "SSR_MCP_AUTH_TOKEN": token},
+        )
+        async with stdio_client(authed_params) as (read_stream, write_stream):
+            async with ClientSession(
+                read_stream,
+                write_stream,
+                read_timeout_seconds=timedelta(seconds=20),
+            ) as session:
+                await session.initialize()
+                listed = _tool_json(await session.call_tool("list_shared_skills", {}))
+                assert listed["count"] == 14
+                installed = _tool_json(
+                    await session.call_tool("install_shared_skill", {"name": "project-memory"})
+                )
+        assert (Path(installed["installed_path"]) / "SKILL.md").is_file()
+
+        server_raw = server_audit.read_text(encoding="utf-8")
+        server_events = [json.loads(line) for line in server_raw.splitlines()]
+        assert [e["error_class"] for e in server_events if e["event_type"] == "auth_failure"] == [
+            "MissingAuthToken",
+            "MissingAuthToken",
+        ]
+        assert [e["tool_name"] for e in server_events if e["event_type"] == "tool_call"] == [
+            "list_shared_skills",
+            "install_shared_skill",
+        ]
+        assert token not in server_raw
 
 
 @pytest.mark.asyncio
