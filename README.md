@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
 
-**Latest prerelease:** [`v0.1.0a1`](https://github.com/cobibean/shared-skills-registry-mcp/releases/tag/v0.1.0a1) — verified GitHub wheel/sdist artifacts. PyPI publication ships with `v0.1.0a2` via the tag-triggered release workflow.
+**Status:** self-hosted alpha. Latest release: [GitHub releases](https://github.com/cobibean/shared-skills-registry-mcp/releases) · PyPI: [`shared-skills-registry-mcp`](https://pypi.org/project/shared-skills-registry-mcp/) (prerelease — install with `--pre`).
 
 **One self-hosted registry for your AI-agent skills — served to every MCP-capable agent you run.**
 
@@ -86,40 +86,29 @@ Then start the service — the wheel bundles the full 14-entry starter catalog a
 shared-skills-registry-http
 ```
 
-> [!NOTE]
-> If the package is not yet visible on PyPI (the `v0.1.0a2` prerelease is published by the tag-triggered release workflow), use the from-source path below.
-
 Or from source:
 
 ```bash
 git clone https://github.com/cobibean/shared-skills-registry-mcp
 cd shared-skills-registry-mcp
-python -m venv .venv
-. .venv/bin/activate
-pip install -e '.[test]'
-pytest -q
+python -m venv .venv && . .venv/bin/activate
+pip install -e .
 shared-skills-registry-http
 ```
 
-In another shell:
+(Contributors: install with `pip install -e '.[test]'` and run `pytest -q` — see [CONTRIBUTING.md](CONTRIBUTING.md).)
+
+Either way, the launcher prints the control-panel URL at startup. Open <http://127.0.0.1:8765/ui> in a browser, or check from another shell:
 
 ```bash
 curl -s http://127.0.0.1:8765/healthz
-curl -s -X POST http://127.0.0.1:8765/tools/list_shared_skills \
-  -H 'Content-Type: application/json' \
-  -d '{}'
 ```
 
-Then open the control panel at <http://127.0.0.1:8765/ui>.
-
-If port `8765` is already in use, choose another loopback port and use it consistently in the browser, curl commands, and `SSR_MCP_URL`:
+If port `8765` is already in use, pick another loopback port and use it consistently in the browser, curl commands, and `SSR_MCP_URL`:
 
 ```bash
 SSR_MCP_PORT=18765 shared-skills-registry-http
-curl -s http://127.0.0.1:18765/healthz
 ```
-
-The packaged launcher prints the effective URL at startup.
 
 ### Connect an MCP client
 

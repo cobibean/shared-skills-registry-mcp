@@ -18,6 +18,7 @@ def main() -> None:
             "Generate a token with shared-skills-registry-generate-token.",
             file=sys.stderr,
         )
+    print(f"Open SSR control panel: {settings.base_url}/ui", file=sys.stderr)
     uvicorn.run(
         "shared_skills_registry_mcp.app:app",
         host=settings.bind_host,
