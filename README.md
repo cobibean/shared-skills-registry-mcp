@@ -1,12 +1,24 @@
-# Shared Skills Registry MCP
+<div align="center">
 
-[![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
-
-**Status:** self-hosted alpha. Latest release: [GitHub releases](https://github.com/cobibean/shared-skills-registry-mcp/releases) · PyPI: [`shared-skills-registry-mcp`](https://pypi.org/project/shared-skills-registry-mcp/) (prerelease — install with `--pre`).
+# Open SSR — Shared Skills Registry MCP
 
 **One self-hosted registry for your AI-agent skills — served to every MCP-capable agent you run.**
 
+[![PyPI](https://img.shields.io/badge/PyPI-shared--skills--registry--mcp-3775A9?logo=pypi&logoColor=white)](https://pypi.org/project/shared-skills-registry-mcp/)
+[![CI](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml/badge.svg)](https://github.com/cobibean/shared-skills-registry-mcp/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.11–3.14-3776AB?logo=python&logoColor=white)](https://pypi.org/project/shared-skills-registry-mcp/)
+[![MCP](https://img.shields.io/badge/MCP-runtime--neutral-6E56CF)](docs/MCP-CLIENT-CONFIG.md)
+[![Status](https://img.shields.io/badge/status-alpha-orange)](docs/KNOWN-LIMITATIONS.md)
+[![License](https://img.shields.io/badge/license-MIT-black)](LICENSE)
+[![Twitter](https://img.shields.io/badge/@cobi__bean-1DA1F2?logo=x&logoColor=white)](https://twitter.com/cobi_bean)
+
+[**Quickstart**](#quickstart) · [Connect an agent](#connect-an-mcp-client) · [What it does](#what-it-does) · [Starter catalog](#included-starter-catalog) · [Security](#known-limitations) · [Contributing](CONTRIBUTING.md)
+
+</div>
+
 ![Animated Open SSR workflow: browse the 14-skill catalog, inspect a checksum-bearing bundle, and review genuine MCP activity](https://raw.githubusercontent.com/cobibean/shared-skills-registry-mcp/main/docs/assets/open-ssr-demo.gif)
+
+> **Publish a skill bundle once → any MCP client discovers it, inspects its checksums, and installs it locally with guardrails.** No plugin-marketplace lock-in, no copy-pasting `SKILL.md` folders between machines.
 
 Open SSR is a **runtime-neutral** skill registry. Publish a skill bundle (`SKILL.md` plus its references, templates, and scripts) once, and any MCP client — Claude Code, Claude Desktop, Cursor, Windsurf, Hermes, or your own SDK — can discover it, inspect the exact files and SHA-256 checksums, and install it into a local skills directory with guardrails. Every tool call and every install lands in a human-readable audit trail.
 
